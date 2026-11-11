@@ -41,7 +41,6 @@ export function Home() {
       <div className="actions">
         <button className="action main" onClick={() => go('buy')}><span className="ic"><Plus size={24} /></span>خرید</button>
         <button className="action" onClick={() => go('sell')}><span className="ic"><Minus size={22} /></span>فروش</button>
-        <button className="action" onClick={() => go('send')}><span className="ic"><Send size={21} /></span>ارسال</button>
         <button className="action" onClick={() => go('scan')}><span className="ic"><QrCode size={22} /></span>پرداخت</button>
       </div>
 
@@ -57,7 +56,7 @@ export function Home() {
         <ChevronLeft size={18} className="faint" />
       </button>
 
-      <SectionTitle title="حواله سریع" link="درخواست میلی" onLink={() => go('request')} />
+      <SectionTitle title="انتقال" link="درخواست میلی" onLink={() => go('request')} />
       <div className="hscroll">
         <button className="col gap8" style={{ alignItems: 'center', minWidth: 60 }} onClick={() => go('send')}>
           <span className="avatar" style={{ background: 'var(--surface)', color: '#fff' }}><Plus size={22} /></span>
@@ -123,7 +122,7 @@ export function Assets() {
           {parts.map((p) => <i key={p.name} style={{ flex: p.value, background: p.color }} />)}
         </div>
         <div className="row mt12" style={{ flexWrap: 'wrap', gap: '6px 14px' }}>
-          {[['میلی', '#fbb918', milliToman], ['صندوق‌ها', '#2a49e8', 108500000], ['رمزارز', '#f7931a', 54200000], ['سهام', '#3b82f6', 8420000], ['فلزات', '#c9ced6', 8300000]].map(([n, c, v]) => (
+          {[['میلی', '#fbb918', milliToman], ['صندوق‌ها', '#2a49e8', 108500000], ['رمزارز', '#f7931a', 54200000], ['سهام', '#3b82f6', 8420000], ['سکه و فلزات', '#c9ced6', 29300000]].map(([n, c, v]) => (
             <span key={n} className="row xs" style={{ gap: 6 }}><Diamond color={c} size={8} />{n} {fa(Math.round((v / total) * 100))}٪</span>
           ))}
         </div>

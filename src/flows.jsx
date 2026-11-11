@@ -343,6 +343,8 @@ export function CreditUp() {
       <div className="card mt8" style={{ padding: '4px 18px' }}>
         <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub={`${fa(state.milli)} میلی`} end={<Toggle on />} />
         <Row start={<AssetIcon color="#2a49e8" />} title="صندوق طلای میلی" sub="۴۸٬۰۰۰ واحد" end={<Toggle on />} />
+        <Row start={<AssetIcon color="#5470ff" />} title="صندوق درآمد ثابت" sub="سود روزشمار" end={<Toggle on />} />
+        <Row start={<AssetIcon color="#c9ced6" />} title="نقره" sub="۴۱۰ گرم" end={<Toggle on={false} />} />
         <Row start={<AssetIcon color="#26a17b" />} title="تتر" sub="۱۲۶ USDT" end={<Toggle on={false} />} />
       </div>
       <div className="card soft mt16">

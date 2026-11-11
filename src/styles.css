@@ -119,7 +119,7 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: non
 .eye { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 1px solid #333; background: #000; }
 
 /* ───── اکشن‌ها ───── */
-.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 18px; }
+.actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
 .action .ic {
   width: 100%; height: 58px; border-radius: 18px; border: 1px solid #333; display: grid; place-items: center;
