@@ -158,7 +158,7 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: non
   flex: none; display: flex; justify-content: space-around; padding: 10px 6px 26px;
   border-top: 1px solid var(--line); background: rgba(0,0,0,.92); backdrop-filter: blur(12px);
 }
-.tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; color: #7d7d7d; width: 64px; }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: #7d7d7d; width: 74px; white-space: nowrap; }
 .tab.on { color: #fff; font-weight: 800; }
 .tab .dot { width: 6px; height: 6px; transform: rotate(45deg); background: var(--gold); margin-top: 2px; }
 .tab:not(.on) .dot { visibility: hidden; }

@@ -3,7 +3,7 @@ import {
   Plus, Minus, Send, QrCode, Wallet, ChevronLeft, Sparkles, ArrowLeftRight, HandCoins,
   ShoppingBag, Landmark, CalendarClock, Gauge, Receipt, ShieldCheck, Building2, Truck, MapPin,
   Gift, Users, Star, KeyRound, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
-  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User,
+  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem,
 } from 'lucide-react';
 import {
   useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
@@ -58,7 +58,7 @@ export function Home() {
         <ChevronLeft size={18} className="faint" />
       </button>
 
-      <SectionTitle title="ارسال سریع" link="درخواست میلی" onLink={() => go('request')} />
+      <SectionTitle title="حواله سریع" link="درخواست میلی" onLink={() => go('request')} />
       <div className="hscroll">
         <button className="col gap8" style={{ alignItems: 'center', minWidth: 60 }} onClick={() => go('send')}>
           <span className="avatar" style={{ background: 'var(--surface)', color: '#fff' }}><Plus size={22} /></span>
@@ -80,19 +80,6 @@ export function Home() {
         </span>
         <ChevronLeft size={18} className="faint" />
       </button>
-
-      <SectionTitle title="قلک‌ها" link="قلک تازه" onLink={() => go('jar')} />
-      <div className="hscroll">
-        {state.jars.map((j) => (
-          <div className="jar" key={j.id}>
-            <div style={{ fontSize: 24 }}>{j.icon}</div>
-            <div className="h3 mt8">{j.name}</div>
-            <div className="small mt8"><M m={j.saved} /></div>
-            <div className="bar mt8"><i style={{ width: `${Math.max(4, (j.saved / j.goal) * 100)}%` }} /></div>
-            <div className="xs muted mt8">{j.auto}</div>
-          </div>
-        ))}
-      </div>
 
       <SectionTitle title="تراکنش‌های اخیر" link="همه" onLink={() => go('history')} />
       <div>
@@ -123,7 +110,7 @@ function Sparkline() {
 const GROUPS = ['همه', 'فلزات', 'رمزارز', 'سهام', 'صندوق'];
 
 export function Assets() {
-  const { state, go } = useApp();
+  const { state, go, hidden } = useApp();
   const [g, setG] = useState('همه');
   const milliToman = state.milli * PRICE;
   const total = milliToman + state.assets.reduce((s, a) => s + a.value, 0);
@@ -161,8 +148,8 @@ export function Assets() {
       <button className="card soft row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('tab:home')}>
         <span className="badge-ic" style={{ background: '#000' }}><Diamond /></span>
         <span className="grow col gap4">
-          <span className="h3">میلی</span>
-          <span className="small muted num">{fa(state.milli)} میلی</span>
+          <span className="h3">طلا</span>
+          <span className="small muted num">{hidden ? '••••' : `${fa(state.milli / 1000, 2)} گرم`}</span>
         </span>
         <span className="col gap4" style={{ alignItems: 'flex-end' }}>
           <span className="h3"><M t={milliToman} /></span>
@@ -184,8 +171,8 @@ export function Assets() {
       <button className="card gold mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('advisor')}>
         <span className="badge-ic" style={{ background: 'rgba(251,185,24,.18)' }}><Sparkles size={20} className="gold" /></span>
         <span className="grow col gap4">
-          <span className="h3">مشاور میلی</span>
-          <span className="xs muted">با تبدیل بخشی از سود رمزارز به میلی، سبدت متعادل‌تر می‌شود</span>
+          <span className="h3">مشاور هوشمند میلی</span>
+          <span className="xs muted">راهنمایی به سمت بهترین سرمایه‌گذاری‌ها</span>
         </span>
         <ChevronLeft size={18} className="faint" />
       </button>
@@ -197,12 +184,10 @@ export function Assets() {
 export function Services() {
   const { state, go } = useApp();
   const tiles = [
-    ['credit', 'خرید اعتباری', ShoppingBag], ['loan', 'وام', Landmark], ['installments', 'اقساط', CalendarClock],
-    ['score', 'امتیاز اعتباری', Gauge], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
-    ['realestate', 'املاک', Building2], ['delivery', 'تحویل فیزیکی', Truck], ['merchants', 'پذیرنده‌ها', MapPin],
-    ['giftcard', 'کارت هدیه', Gift], ['family', 'خانواده', Users], ['rewards', 'باشگاه پاداش', Star],
+    ['gallery', 'گالری طلا', Gem], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
+    ['realestate', 'املاک', Building2], ['delivery', 'تحویل فیزیکی', Truck], ['giftcard', 'کارت هدیه', Gift],
+    ['family', 'خانواده', Users], ['rewards', 'باشگاه پاداش', Star],
   ];
-  const left = state.credit.limit - state.credit.used;
   return (
     <>
       <div className="between" style={{ padding: '6px 0 16px' }}>
@@ -217,27 +202,20 @@ export function Services() {
         ))}
       </div>
 
-      <SectionTitle title="اعتبار شما" link="افزایش سقف" onLink={() => go('creditUp')} />
-      <div className="card">
-        <div className="between">
-          <span className="small muted">اعتبار باقی‌مانده</span>
-          <span className="pill" style={{ height: 26, fontSize: 12 }}>رتبه {state.credit.score}</span>
-        </div>
-        <div className="h1 mt8"><M t={left} /></div>
-        <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${(left / state.credit.limit) * 100}%` }} /></div>
-        <div className="between mt8 xs muted"><span>سقف <M t={state.credit.limit} /></span><span>پشتوانه: میلی و سایر دارایی‌ها</span></div>
+      <SectionTitle title="قلک‌ها" link="قلک تازه" onLink={() => go('jar')} />
+      <div className="hscroll">
+        {state.jars.map((j) => (
+          <div className="jar" key={j.id}>
+            <div style={{ fontSize: 24 }}>{j.icon}</div>
+            <div className="h3 mt8">{j.name}</div>
+            <div className="small mt8"><M m={j.saved} /></div>
+            <div className="bar mt8"><i style={{ width: `${Math.max(4, (j.saved / j.goal) * 100)}%` }} /></div>
+            <div className="xs muted mt8">{j.auto}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="card soft mt12 row">
-        <span className="badge-ic" style={{ background: '#000' }}><CalendarClock size={20} /></span>
-        <span className="grow col gap4">
-          <span className="h3">قسط بعدی · ۲۵ آذر</span>
-          <span className="small muted"><M t={4200000} /></span>
-        </span>
-        <button className="btn primary small" onClick={() => go('payInstallment')}>پرداخت</button>
-      </div>
-
-      <SectionTitle title="کجا میلی می‌گیرند" link="نقشه" onLink={() => go('merchants')} />
+      <SectionTitle title="پذیرنده‌ها" link="نقشه" onLink={() => go('merchants')} />
       <div>
         {merchants.map((m) => (
           <Row key={m.name} start={<span className="badge-ic"><Store size={19} /></span>} title={m.name} sub={m.sub}
@@ -270,10 +248,11 @@ export function Services() {
 /* ───────────── تب کارت ───────────── */
 export function Card() {
   const { state, go } = useApp();
+  const left = state.credit.limit - state.credit.used;
   return (
     <>
       <div className="between" style={{ padding: '6px 0 16px' }}>
-        <span className="h1">کارت</span>
+        <span className="h1">کارت و اعتبار</span>
         <ViewToggles />
       </div>
       <div className="bank-card">
@@ -305,13 +284,30 @@ export function Card() {
         ))}
       </div>
 
-      <div className="card mt12">
+      <SectionTitle title="اعتبار شما" link="افزایش سقف" onLink={() => go('creditUp')} />
+      <div className="card">
         <div className="between">
-          <span className="h3 row gap8"><Diamond size={10} />اعتبار خرید</span>
-          <span className="xs muted">پشتوانه: سبد دارایی شما</span>
+          <span className="small muted">اعتبار باقی‌مانده</span>
+          <span className="pill" style={{ height: 26, fontSize: 12 }}>رتبه {state.credit.score}</span>
         </div>
-        <div className="h2 mt8"><M t={state.credit.limit - state.credit.used} /> <span className="small muted">باقی‌مانده</span></div>
-        <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${((state.credit.limit - state.credit.used) / state.credit.limit) * 100}%` }} /></div>
+        <div className="h1 mt8"><M t={left} /></div>
+        <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${(left / state.credit.limit) * 100}%` }} /></div>
+        <div className="between mt8 xs muted"><span>سقف <M t={state.credit.limit} /></span><span>پشتوانه: سبد دارایی شما</span></div>
+      </div>
+
+      <div className="card soft mt12 row">
+        <span className="badge-ic" style={{ background: '#000' }}><CalendarClock size={20} /></span>
+        <span className="grow col gap4">
+          <span className="h3">قسط بعدی · ۲۵ آذر</span>
+          <span className="small muted"><M t={4200000} /></span>
+        </span>
+        <button className="btn primary small" onClick={() => go('payInstallment')}>پرداخت</button>
+      </div>
+
+      <div className="grid4 mt16" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
+        {[['credit', 'خرید اعتباری', ShoppingBag], ['loan', 'وام', Landmark], ['installments', 'اقساط', CalendarClock], ['score', 'امتیاز اعتباری', Gauge]].map(([id, l, Ic]) => (
+          <button key={id} className="tile" onClick={() => go(id)}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
+        ))}
       </div>
 
       <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>

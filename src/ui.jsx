@@ -46,7 +46,7 @@ export function TabBar() {
     { id: 'home', label: 'میلی', icon: <MilliTabIcon /> },
     { id: 'assets', label: 'دارایی‌ها', icon: <PieChart size={23} strokeWidth={1.7} /> },
     { id: 'services', label: 'خدمات', icon: <LayoutGrid size={23} strokeWidth={1.7} /> },
-    { id: 'card', label: 'کارت', icon: <CreditCard size={23} strokeWidth={1.7} /> },
+    { id: 'card', label: 'کارت و اعتبار', icon: <CreditCard size={23} strokeWidth={1.7} /> },
     { id: 'profile', label: 'پروفایل', icon: <User size={23} strokeWidth={1.7} /> },
   ];
   return (
