@@ -45,9 +45,11 @@ const toMilliAmount = (raw, unit) => (unit === 'milli' ? Number(raw || 0) : Numb
 /* ───────────── خرید میلی ───────────── */
 export function Buy({ preset = '' }) {
   const { state, unit, act } = useApp();
-  const [raw, , onKey] = useAmount(preset);
+  const [raw, setRaw, onKey] = useAmount(preset);
   const [auto, setAuto] = useState(false);
   const m = toMilliAmount(raw, unit);
+  const cost = Math.round(m * PRICE);
+  const short = cost > state.rial;
   return (
     <>
       <NavBar title="خرید میلی" end={<UnitFlip />} />
@@ -58,7 +60,7 @@ export function Buy({ preset = '' }) {
       <AmountDisplay raw={raw} unit={unit} />
       <div className="chips">
         {(unit === 'milli' ? [100, 500, 1000, 5000] : [500000, 1000000, 5000000]).map((x) => (
-          <span key={x} className="pill num">{fa(x)}</span>
+          <button key={x} className="pill num" onClick={() => setRaw(String(x))}>{fa(x)}</button>
         ))}
       </div>
       <div className="between card soft mt16" style={{ padding: 14 }}>
@@ -66,14 +68,14 @@ export function Buy({ preset = '' }) {
         <Toggle on={auto} onClick={() => setAuto(!auto)} />
       </div>
       <Keypad onKey={onKey} />
-      <button className="btn primary mt12" disabled={!m} onClick={() => act('buy', { milli: m, auto })}>خرید {m ? `${fa(m, 1)} میلی` : ''}</button>
+      <button className="btn primary mt12" disabled={!m || short} onClick={() => act('buy', { milli: m, auto })}>{short ? 'موجودی کیف پول کافی نیست' : `خرید ${m ? `${fa(m, 1)} میلی` : ''}`}</button>
     </>
   );
 }
 
 /* ───────────── ارسال میلی ───────────── */
 export function Send({ to = 'sara', preset = '' }) {
-  const { unit, act, go } = useApp();
+  const { state, unit, act } = useApp();
   const [sel, setSel] = useState(to);
   const [raw, , onKey] = useAmount(preset);
   const c = contacts.find((x) => x.id === sel);
@@ -97,7 +99,7 @@ export function Send({ to = 'sara', preset = '' }) {
       <AmountDisplay raw={raw} unit={unit} />
       <div className="field" style={{ padding: '10px 16px' }}><input placeholder="یادداشت (مثلاً سهم شام)" defaultValue={preset ? 'سهم شام دیشب' : ''} style={{ width: '100%' }} /></div>
       <Keypad onKey={onKey} />
-      <button className="btn primary mt12" disabled={!m} onClick={() => act('send', { milli: m, to: c.name })}>ارسال</button>
+      <button className="btn primary mt12" disabled={!m || m > state.milli} onClick={() => act('send', { milli: m, to: c.name })}>{m > state.milli ? 'موجودی میلی کافی نیست' : 'ارسال'}</button>
     </>
   );
 }
@@ -135,7 +137,7 @@ export function Request({ preset = '' }) {
 export function Scan() {
   const { back, go } = useApp();
   return (
-    <div style={{ position: 'absolute', inset: '44px 0 0 0' }}>
+    <div style={{ position: 'absolute', inset: 'var(--sb) 0 0 0' }}>
       <div className="scanner" />
       <button className="viewfinder" onClick={() => go('pay')} aria-label="اسکن کد فروشگاه">
         <FakeQR />
@@ -160,10 +162,10 @@ export function Scan() {
 }
 
 // کد QR نمایشی (ثابت، فقط برای تصویر)
-function FakeQR() {
+export function FakeQR({ seed: sd = 7, size = 178, inset = 36, abs = true }) {
   const n = 21;
   const cells = [];
-  let seed = 7;
+  let seed = sd;
   const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
   const finder = (x, y) => [[x, y], [x + 14, y], [x, y + 14]].some(([a, b]) => x >= a && x < a + 7 && y >= b && y < b + 7);
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
@@ -174,7 +176,7 @@ function FakeQR() {
     if (on) cells.push(<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />);
   }
   return (
-    <svg viewBox="-2 -2 25 25" style={{ position: 'absolute', inset: 36, width: 178, height: 178, background: '#fff', borderRadius: 10, opacity: 0.92 }}>
+    <svg viewBox="-2 -2 25 25" style={abs ? { position: 'absolute', inset, width: size, height: size, background: '#fff', borderRadius: 10, opacity: 0.92 } : { width: size, height: size, background: '#fff', borderRadius: 14, padding: 4 }}>
       <g fill="#000">{cells}</g>
     </svg>
   );
@@ -206,13 +208,14 @@ export function Pay() {
 }
 
 /* ───────────── موفقیت ───────────── */
-export function Success({ title = 'پرداخت انجام شد', amount = 150, sub = 'به کافه لمیز', reward = 3, done }) {
+export function Success({ title = 'پرداخت انجام شد', amount, toman, sub = '', reward = 0, hideAmount, done }) {
   const { go } = useApp();
   return (
     <div className="col" style={{ alignItems: 'center', paddingTop: 110, minHeight: '100%' }}>
       <span className="success-ring"><Check size={46} strokeWidth={3} /></span>
       <span className="h1 mt32">{title}</span>
-      <span className="big-num num mt16">{fa(amount, 1)}<small>میلی</small></span>
+      {!hideAmount && amount != null && <span className="big-num num mt16">{fa(amount, 1)}<small>میلی</small></span>}
+      {!hideAmount && toman != null && <span className="big-num num mt16">{fa(toman)}<small>تومان</small></span>}
       <span className="small muted mt8">{sub}</span>
       {reward ? (
         <div className="card gold mt32 row" style={{ width: '100%' }}>
@@ -229,31 +232,48 @@ export function Success({ title = 'پرداخت انجام شد', amount = 150, 
 /* ───────────── قبض و شارژ ───────────── */
 const billIcon = { zap: Zap, flame: Flame, drop: Droplet, phone: Smartphone };
 export function Bills() {
-  const { act } = useApp();
-  const [paid, setPaid] = useState([]);
-  const total = bills.filter((b) => !paid.includes(b.id)).reduce((s, b) => s + b.toman, 0);
+  const { act, go } = useApp();
+  const [tab, setTab] = useState('bills');
+  const [auto, setAuto] = useState(true);
+  const total = bills.reduce((s, b) => s + b.toman, 0);
+  const charge = [[100000, 'شارژ ۱۰۰ هزار تومانی'], [200000, 'شارژ ۲۰۰ هزار تومانی'], [500000, 'شارژ ۵۰۰ هزار تومانی']];
+  const net = [[300000, 'بسته ۳۰ روزه · ۳۰ گیگ'], [550000, 'بسته ۳۰ روزه · ۶۰ گیگ'], [900000, 'بسته ۹۰ روزه · ۱۵۰ گیگ']];
+  const opts = tab === 'charge' ? charge : net;
   return (
     <>
       <NavBar title="قبض و شارژ" />
-      <div className="segment"><button className="on">قبض‌ها</button><button>شارژ</button><button>اینترنت</button></div>
-      <div className="card mt16" style={{ padding: '4px 18px' }}>
-        {bills.map((b) => {
-          const Ic = billIcon[b.icon];
-          return (
-            <Row key={b.id} start={<span className="badge-ic"><Ic size={19} /></span>} title={b.name} sub={b.sub}
-              end={<M t={b.toman} />} endSub={<span className="xs muted">مهلت ۵ روز</span>} />
-          );
-        })}
+      <div className="segment">
+        {[['bills', 'قبض‌ها'], ['charge', 'شارژ'], ['net', 'اینترنت']].map(([id, l]) => <button key={id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>{l}</button>)}
       </div>
-      <div className="between card soft mt16" style={{ padding: 14 }}>
-        <span className="col gap4"><span className="h3">پرداخت خودکار قبض‌ها</span><span className="xs muted">هر ماه از میلی، روز سررسید</span></span>
-        <Toggle on />
-      </div>
-      <div className="card mt16">
-        <div className="between"><span className="muted small">جمع چهار قبض</span><span className="h2"><M t={total} /></span></div>
-        <div className="between mt8 xs muted"><span>پرداخت از میلی</span><span className="gold">۱٪ پاداش</span></div>
-      </div>
-      <button className="btn primary mt24" onClick={() => act('bills', { milli: total / PRICE })}>پرداخت همه</button>
+      {tab === 'bills' ? (
+        <>
+          <div className="card mt16" style={{ padding: '4px 18px' }}>
+            {bills.map((b) => {
+              const Ic = billIcon[b.icon];
+              return (
+                <Row key={b.id} start={<span className="badge-ic"><Ic size={19} /></span>} title={b.name} sub={b.sub}
+                  end={<M t={b.toman} />} endSub={<span className="xs muted">مهلت ۵ روز</span>} />
+              );
+            })}
+          </div>
+          <div className="between card soft mt16" style={{ padding: 14 }}>
+            <span className="col gap4"><span className="h3">پرداخت خودکار قبض‌ها</span><span className="xs muted">هر ماه از میلی، روز سررسید</span></span>
+            <Toggle on={auto} onClick={() => setAuto(!auto)} />
+          </div>
+          <div className="card mt16">
+            <div className="between"><span className="muted small">جمع چهار قبض</span><span className="h2"><M t={total} /></span></div>
+            <div className="between mt8 xs muted"><span>پرداخت از میلی</span><span className="gold">۱٪ پاداش</span></div>
+          </div>
+          <button className="btn primary mt24" onClick={() => act('bills', { milli: total / PRICE })}>پرداخت همه</button>
+        </>
+      ) : (
+        <div className="card mt16" style={{ padding: '4px 18px' }}>
+          {opts.map(([t, n]) => (
+            <Row key={n} start={<span className="badge-ic"><Smartphone size={19} /></span>} title={n} sub="۰۹۱۲ ۳۴۵ ۶۷۸۹" end={<M t={t} />} chevron
+              onClick={() => go('confirm', { title: n, sub: n, milli: t / PRICE, rate: 0.01, icon: 'bill', txSub: 'شارژ و اینترنت' })} />
+          ))}
+        </div>
+      )}
     </>
   );
 }
@@ -261,8 +281,9 @@ export function Bills() {
 /* ───────────── تبدیل ───────────── */
 export function Convert() {
   const { state, act } = useApp();
+  const [pc, setPc] = useState(0.25);
   const btc = state.assets.find((a) => a.id === 'btc');
-  const fromT = 8000000;
+  const fromT = Math.round(btc.value * pc);
   return (
     <>
       <NavBar title="تبدیل" />
@@ -286,14 +307,14 @@ export function Convert() {
         <div className="xs muted mt8" style={{ textAlign: 'left' }}>میلی</div>
       </div>
       <div className="row mt16" style={{ gap: 8 }}>
-        {['۲۵٪', '۵۰٪', 'همه'].map((x) => <span key={x} className="pill grow" style={{ justifyContent: 'center' }}>{x}</span>)}
+        {[['۲۵٪', 0.25], ['۵۰٪', 0.5], ['همه', 1]].map(([x, v]) => <button key={x} className={`pill grow ${pc === v ? 'active' : ''}`} style={{ justifyContent: 'center' }} onClick={() => setPc(v)}>{x}</button>)}
       </div>
       <div className="card soft mt16">
         <div className="between small"><span className="muted">نرخ</span><span className="num">هر میلی {fa(PRICE)} تومان</span></div>
         <div className="divider" />
         <div className="between small"><span className="muted">زمان انجام</span><span>فوری</span></div>
       </div>
-      <button className="btn primary" style={{ marginTop: 120 }} onClick={() => act('convert', { from: 'btc', toman: fromT })}>تبدیل</button>
+      <button className="btn primary mt24" onClick={() => act('convert', { from: 'btc', toman: fromT })}>تبدیل</button>
     </>
   );
 }
@@ -304,6 +325,8 @@ export function NewJar() {
   const icons = ['🏠', '✈️', '🚗', '🎓', '💍', '🎁', '📱', '🌱'];
   const [ic, setIc] = useState('🚗');
   const [freq, setFreq] = useState('هفتگی');
+  const [name, setName] = useState('ماشین تازه');
+  const per = freq === 'روزانه' ? '۲۷۳' : freq === 'هفتگی' ? '۱٬۹۱۰' : '۸٬۲۸۰';
   return (
     <>
       <NavBar title="قلک تازه" />
@@ -313,13 +336,13 @@ export function NewJar() {
       <div className="row mt16" style={{ justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
         {icons.map((x) => <button key={x} onClick={() => setIc(x)} style={{ fontSize: 22, width: 40, height: 40, borderRadius: 12, background: x === ic ? 'var(--gold-soft)' : 'var(--surface)', border: x === ic ? '1px solid var(--gold)' : 0 }}>{x}</button>)}
       </div>
-      <div className="field mt24"><label>نام قلک</label><input className="v" defaultValue="ماشین تازه" style={{ width: '100%' }} /></div>
+      <div className="field mt24"><label>نام قلک</label><input className="v" value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%' }} /></div>
       <div className="field mt12"><label>هدف</label><div className="v num">۱۲۰٬۰۰۰ میلی <span className="small muted">≈ {fa(120000 * PRICE)} تومان</span></div></div>
       <div className="field mt12 row"><Calendar size={18} className="muted" /><div className="grow"><label>تا</label><div className="v">اسفند ۱۴۰۶</div></div></div>
       <div className="h3 mt24">واریز خودکار</div>
       <div className="segment mt8">{['روزانه', 'هفتگی', 'ماهانه'].map((x) => <button key={x} className={freq === x ? 'on' : ''} onClick={() => setFreq(x)}>{x}</button>)}</div>
       <div className="small muted mt12" style={{ textAlign: 'center' }}>هر {freq === 'روزانه' ? 'روز' : freq === 'هفتگی' ? 'هفته' : 'ماه'} <span className="gold num">{freq === 'روزانه' ? '۲۷۳' : freq === 'هفتگی' ? '۱٬۹۱۰' : '۸٬۲۸۰'} میلی</span> تا رسیدن به هدف</div>
-      <button className="btn primary mt24" onClick={() => act('jar', { name: 'ماشین تازه', icon: ic, freq })}>ساخت قلک</button>
+      <button className="btn primary mt24" disabled={!name.trim()} onClick={() => act('jar', { name: name.trim(), icon: ic, freq, per })}>ساخت قلک</button>
     </>
   );
 }
@@ -328,6 +351,8 @@ export function NewJar() {
 export function CreditUp() {
   const { state, act } = useApp();
   const [v, setV] = useState(120);
+  const [on, setOn] = useState({ milli: true, goldfund: true, income: true, silver: false, usdt: false });
+  const tg = (k) => setOn((o) => ({ ...o, [k]: !o[k] }));
   return (
     <>
       <NavBar title="افزایش سقف اعتبار" />
@@ -341,11 +366,11 @@ export function CreditUp() {
       </div>
       <div className="h3 mt24">پشتوانه اعتبار</div>
       <div className="card mt8" style={{ padding: '4px 18px' }}>
-        <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub={`${fa(state.milli)} میلی`} end={<Toggle on />} />
-        <Row start={<AssetIcon color="#2a49e8" />} title="صندوق طلای میلی" sub="۴۸٬۰۰۰ واحد" end={<Toggle on />} />
-        <Row start={<AssetIcon color="#5470ff" />} title="صندوق درآمد ثابت" sub="سود روزشمار" end={<Toggle on />} />
-        <Row start={<AssetIcon color="#c9ced6" />} title="نقره" sub="۴۱۰ گرم" end={<Toggle on={false} />} />
-        <Row start={<AssetIcon color="#26a17b" />} title="تتر" sub="۱۲۶ USDT" end={<Toggle on={false} />} />
+        <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub={`${fa(state.milli)} میلی`} end={<Toggle on={on.milli} onClick={() => tg('milli')} />} />
+        <Row start={<AssetIcon color="#2a49e8" />} title="صندوق طلای میلی" sub="۴۸٬۰۰۰ واحد" end={<Toggle on={on.goldfund} onClick={() => tg('goldfund')} />} />
+        <Row start={<AssetIcon color="#5470ff" />} title="صندوق درآمد ثابت" sub="سود روزشمار" end={<Toggle on={on.income} onClick={() => tg('income')} />} />
+        <Row start={<AssetIcon color="#c9ced6" />} title="نقره" sub="۴۱۰ گرم" end={<Toggle on={on.silver} onClick={() => tg('silver')} />} />
+        <Row start={<AssetIcon color="#26a17b" />} title="تتر" sub="۱۲۶ USDT" end={<Toggle on={on.usdt} onClick={() => tg('usdt')} />} />
       </div>
       <div className="card soft mt16">
         <div className="between small"><span className="muted">رتبه اعتباری</span><span className="gold">A</span></div>

@@ -3,7 +3,7 @@ import {
   Plus, Minus, Send, QrCode, Wallet, ChevronLeft, Sparkles, ArrowLeftRight, HandCoins,
   ShoppingBag, Landmark, CalendarClock, Gauge, Receipt, ShieldCheck, Building2, Truck, MapPin,
   Gift, Users, Star, KeyRound, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
-  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards,
+  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards, LogOut,
 } from 'lucide-react';
 import {
   useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
@@ -11,6 +11,7 @@ import {
 } from './ui.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa } from './format.js';
+import { MONTHS } from './store.jsx';
 
 /* ───────────── تب میلی (خانه) ───────────── */
 export function Home() {
@@ -72,7 +73,7 @@ export function Home() {
 
       <SectionTitle title="تراکنش‌های اخیر" link="همه" onLink={() => go('history')} />
       <div>
-        {state.tx.map((t) => (
+        {state.tx.slice(0, 5).map((t) => (
           <Row key={t.id} start={<TxIcon kind={t.icon} />} title={t.title} sub={t.sub}
             end={<span className={t.milli > 0 ? 'up' : ''}>{t.milli > 0 ? '+' : '−'}<M m={Math.abs(t.milli)} /></span>} />
         ))}
@@ -238,6 +239,7 @@ export function Services() {
 export function Card() {
   const { state, go } = useApp();
   const left = state.credit.limit - state.credit.used;
+  const next = state.installments[0];
   return (
     <>
       <div className="between" style={{ padding: '6px 0 16px' }}>
@@ -247,7 +249,7 @@ export function Card() {
       <div className="bank-card">
         <div className="between">
           <Logo size={36} />
-          <span className="pill active" style={{ height: 28, fontSize: 12 }}>اعتباری</span>
+          <span className="pill active" style={{ height: 28, fontSize: 12 }}>{state.frozen ? 'مسدود موقت' : 'اعتباری'}</span>
         </div>
         <div className="num" style={{ direction: 'ltr', fontSize: 22, letterSpacing: 2, marginTop: 52, textAlign: 'left' }}>5022 •••• •••• 9203</div>
         <div className="between mt12">
@@ -273,14 +275,18 @@ export function Card() {
         <div className="between mt8 xs muted"><span>سقف <M t={state.credit.limit} /></span><span>پشتوانه: سبد دارایی شما</span></div>
       </div>
 
-      <div className="card soft mt12 row">
-        <span className="badge-ic" style={{ background: '#000' }}><CalendarClock size={20} /></span>
-        <span className="grow col gap4">
-          <span className="h3">قسط بعدی · ۲۵ آذر</span>
-          <span className="small muted"><M t={4200000} /></span>
-        </span>
-        <button className="btn primary small" onClick={() => go('payInstallment')}>پرداخت</button>
-      </div>
+      {next ? (
+        <div className="card soft mt12 row">
+          <span className="badge-ic" style={{ background: '#000' }}><CalendarClock size={20} /></span>
+          <span className="grow col gap4">
+            <span className="h3">قسط بعدی · ۲۵ {MONTHS[next.k % 12]}</span>
+            <span className="small muted"><M t={next.monthly} /></span>
+          </span>
+          <button className="btn primary small" onClick={() => go('payInstallment', { id: next.id })}>پرداخت</button>
+        </div>
+      ) : (
+        <div className="card soft mt12 row"><CalendarClock size={20} className="gold" /><span className="grow small">قسط باز نداری</span></div>
+      )}
 
       <div className="grid4 mt16" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[['credit', 'خرید اعتباری', ShoppingBag], ['loan', 'وام', Landmark], ['installments', 'اقساط', CalendarClock], ['score', 'امتیاز اعتباری', Gauge]].map(([id, l, Ic]) => (
@@ -289,8 +295,8 @@ export function Card() {
       </div>
 
       <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
-        {[['رمز دوم', KeyRound, 'cardAction'], ['شماره کارت', Hash, 'cardAction'], ['مسدود موقت', Snowflake, 'cardAction'], ['پشتوانه', WalletCards, 'backing'], ['تنظیمات', Settings, 'cardAction']].map(([l, Ic, to]) => (
-          <button key={l} className="tile" style={{ padding: '12px 2px', fontSize: 11 }} onClick={() => go(to)}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
+        {[['رمز دوم', KeyRound, 'cardAction', 'pin'], ['شماره کارت', Hash, 'cardAction', 'number'], [state.frozen ? 'رفع مسدودی' : 'مسدود موقت', Snowflake, 'cardAction', 'freeze'], ['پشتوانه', WalletCards, 'backing'], ['تنظیمات', Settings, 'cardAction', 'settings']].map(([l, Ic, to, kind]) => (
+          <button key={l} className="tile" style={{ padding: '12px 2px', fontSize: 11 }} onClick={() => go(to, { kind })}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
         ))}
       </div>
 
@@ -304,7 +310,7 @@ export function Card() {
 
 /* ───────────── تب پروفایل ───────────── */
 export function Profile() {
-  const { go, unit, setUnit } = useApp();
+  const { go, unit, setUnit, state } = useApp();
   return (
     <>
       <div className="col" style={{ alignItems: 'center', padding: '14px 0 6px' }}>
@@ -315,9 +321,14 @@ export function Profile() {
 
       <SectionTitle title="حساب‌ها" link="حساب تازه" onLink={() => go('newAccount')} />
       <div className="card" style={{ padding: '4px 18px' }}>
-        <Row start={<span className="badge-ic"><User size={19} /></span>} title="حساب شخصی" sub="فعال" end={<span className="pill active" style={{ height: 24, fontSize: 11 }}>فعلی</span>} />
-        <Row start={<span className="badge-ic"><Briefcase size={19} /></span>} title="کافه نارنج" sub="حساب بیزینس · امروز ۳۲ پرداخت" chevron onClick={() => go('business')} />
-        <Row start={<span className="badge-ic"><Users size={19} /></span>} title="خانواده رضایی" sub="حساب خانواده · ۳ عضو" chevron onClick={() => go('family')} />
+        {state.accounts.map((a) => (
+          <Row key={a.id}
+            start={<span className="badge-ic">{a.type === 'business' ? <Briefcase size={19} /> : a.type === 'family' ? <Users size={19} /> : <User size={19} />}</span>}
+            title={a.label} sub={a.id === state.account ? 'حساب فعلی' : a.sub}
+            end={a.id === state.account ? <span className="pill active" style={{ height: 24, fontSize: 11 }}>فعلی</span> : null}
+            chevron={a.type !== 'personal' && a.id !== state.account}
+            onClick={() => (a.type === 'business' ? go('business') : a.type === 'family' ? go('family') : go('accounts'))} />
+        ))}
       </div>
 
       <button className="card gold mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('myqr')}>
@@ -339,11 +350,12 @@ export function Profile() {
             <button className={unit === 'toman' ? 'on' : ''} onClick={() => setUnit('toman')}>تومان</button>
           </div>
         </div>
-        <Row start={<span className="badge-ic"><Lock size={19} /></span>} title="امنیت و ورود" chevron />
-        <Row start={<span className="badge-ic"><Bell size={19} /></span>} title="اعلان‌ها" chevron />
-        <Row start={<span className="badge-ic"><UserPlus size={19} /></span>} title="دعوت از دوستان" sub="برای هر دعوت ۱۰۰ میلی هدیه" chevron />
-        <Row start={<span className="badge-ic"><HelpCircle size={19} /></span>} title="پشتیبانی" sub="پاسخ‌گویی شبانه‌روزی" chevron />
-        <Row start={<span className="badge-ic"><Info size={19} /></span>} title="درباره میلی" sub="هر میلی، یک میلی‌گرم طلای ۱۸ عیار" chevron />
+        <Row start={<span className="badge-ic"><Lock size={19} /></span>} title="امنیت و ورود" chevron onClick={() => go('settings', { kind: 'security' })} />
+        <Row start={<span className="badge-ic"><Bell size={19} /></span>} title="اعلان‌ها" chevron onClick={() => go('settings', { kind: 'notif' })} />
+        <Row start={<span className="badge-ic"><UserPlus size={19} /></span>} title="دعوت از دوستان" sub="برای هر دعوت ۱۰۰ میلی هدیه" chevron onClick={() => go('settings', { kind: 'invite' })} />
+        <Row start={<span className="badge-ic"><HelpCircle size={19} /></span>} title="پشتیبانی" sub="پاسخ‌گویی شبانه‌روزی" chevron onClick={() => go('settings', { kind: 'support' })} />
+        <Row start={<span className="badge-ic"><Info size={19} /></span>} title="درباره میلی" sub="هر میلی، یک میلی‌گرم طلای ۱۸ عیار" chevron onClick={() => go('settings', { kind: 'about' })} />
+        <Row start={<span className="badge-ic"><LogOut size={19} /></span>} title="خروج از حساب" chevron onClick={() => go('welcome')} />
       </div>
     </>
   );

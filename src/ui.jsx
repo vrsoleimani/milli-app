@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import {
   Bell, ScanLine, Eye, EyeOff, ChevronDown, ChevronRight, ChevronLeft, PieChart,
-  LayoutGrid, CreditCard, User, QrCode, ArrowDownLeft, Gift, Receipt, Plus, Delete,
+  LayoutGrid, CreditCard, User, QrCode, ArrowDownLeft, Gift, Receipt, Plus, Delete, ArrowUpRight, Minus, ShoppingBag,
 } from 'lucide-react';
 import { fa, money, milliIn, pct, HIDDEN } from './format.js';
 import { initialState } from './data.js';
@@ -71,13 +71,14 @@ function MilliTabIcon() {
 }
 
 export function TopBar() {
-  const { go } = useApp();
+  const { go, state } = useApp();
+  const acct = state.accounts?.find((a) => a.id === state.account);
   return (
     <div className="topbar">
       <Logo />
       <div className="grow col">
         <span className="h3">علی رضایی</span>
-        <span><button className="acct-chip" onClick={() => go('accounts')}>حساب شخصی <ChevronDown size={13} /></button></span>
+        <span><button className="acct-chip" onClick={() => go('accounts')}>{acct ? acct.label : 'حساب شخصی'} <ChevronDown size={13} /></button></span>
       </div>
       <button className="icon-btn" onClick={() => go('scan')} aria-label="اسکن"><ScanLine size={20} /></button>
       <button className="icon-btn" onClick={() => go('notifications')} aria-label="اعلان‌ها"><Bell size={20} /></button>
@@ -158,7 +159,7 @@ export function AssetIcon({ color }) {
 export function TxIcon({ kind }) {
   const map = {
     qr: <QrCode size={19} />, in: <ArrowDownLeft size={19} className="up" />, gift: <Gift size={19} className="gold" />,
-    bill: <Receipt size={19} />, buy: <Plus size={19} className="gold" />,
+    bill: <Receipt size={19} />, buy: <Plus size={19} className="gold" />, out: <ArrowUpRight size={19} />, sell: <Minus size={19} />, shop: <ShoppingBag size={19} />,
   };
   return <span className="badge-ic">{map[kind] || <Diamond />}</span>;
 }
