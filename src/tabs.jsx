@@ -3,7 +3,7 @@ import {
   Plus, Minus, Send, QrCode, Wallet, ChevronLeft, Sparkles, ArrowLeftRight, HandCoins,
   ShoppingBag, Landmark, CalendarClock, Gauge, Receipt, ShieldCheck, Building2, Truck, MapPin,
   Gift, Users, Star, KeyRound, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
-  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem,
+  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards,
 } from 'lucide-react';
 import {
   useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
@@ -26,7 +26,6 @@ export function Home() {
         <div className="mt12"><BigAmount milli={state.milli} /></div>
         <div className="between mt8">
           <span className="small muted"><Alt m={state.milli} /></span>
-          <Change v={3.1} suffix="در یک ماه" />
         </div>
         <div className="divider" />
         <button className="between" style={{ width: '100%' }} onClick={() => go('price')}>
@@ -71,15 +70,6 @@ export function Home() {
           </button>
         ))}
       </div>
-
-      <button className="card gold mt24 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('rewards')}>
-        <span className="badge-ic" style={{ background: 'rgba(251,185,24,.18)' }}><Gift size={20} className="gold" /></span>
-        <span className="grow col gap4">
-          <span className="h3">پاداش این ماه: <M m={state.rewardsMonth} /></span>
-          <span className="xs muted">هر خرید با کارت و QR، میلی برمی‌گرداند</span>
-        </span>
-        <ChevronLeft size={18} className="faint" />
-      </button>
 
       <SectionTitle title="تراکنش‌های اخیر" link="همه" onLink={() => go('history')} />
       <div>
@@ -184,7 +174,7 @@ export function Assets() {
 export function Services() {
   const { state, go } = useApp();
   const tiles = [
-    ['gallery', 'گالری طلا', Gem], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
+    ['gallery', 'گالری طلا', Gem], ['goldsmith', 'طلاساز', Hammer], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
     ['realestate', 'املاک', Building2], ['delivery', 'تحویل فیزیکی', Truck], ['giftcard', 'کارت هدیه', Gift],
     ['family', 'خانواده', Users], ['rewards', 'باشگاه پاداش', Star],
   ];
@@ -194,7 +184,7 @@ export function Services() {
         <span className="h1">خدمات</span>
         <ViewToggles />
       </div>
-      <div className="grid4">
+      <div className="grid4" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         {tiles.map(([id, label, Ic]) => (
           <button key={id} className="tile" onClick={() => go(id)}>
             <span className="ic"><Ic size={23} strokeWidth={1.7} /></span>{label}
@@ -273,17 +263,6 @@ export function Card() {
         <span className="small gold"><M m={state.rewardsMonth} /></span>
       </div>
 
-      <SectionTitle title="پشتوانه پرداخت" link="چیدن ترتیب" onLink={() => go('backing')} />
-      <div className="card" style={{ padding: '4px 18px' }}>
-        {state.backing.map((id, i) => (
-          <Row key={id}
-            start={<span className="badge-ic" style={{ width: 30, height: 30, borderRadius: 9, background: i === 0 ? 'var(--gold)' : '#2a2a2a', color: i === 0 ? '#000' : '#fff', fontWeight: 800, fontSize: 14 }}>{fa(i + 1)}</span>}
-            title={backingLabels[id].name}
-            end={<span className="small muted">{id === 'milli' ? <M m={state.milli} /> : id === 'rial' ? <Rial t={state.rial} /> :<M t={state.assets.find((a) => a.id === id)?.value || 0} />}</span>}
-            chevron={false} />
-        ))}
-      </div>
-
       <SectionTitle title="اعتبار شما" link="افزایش سقف" onLink={() => go('creditUp')} />
       <div className="card">
         <div className="between">
@@ -310,9 +289,9 @@ export function Card() {
         ))}
       </div>
 
-      <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
-        {[['رمز دوم', KeyRound], ['شماره کارت', Hash], ['مسدود موقت', Snowflake], ['تنظیمات', Settings]].map(([l, Ic]) => (
-          <button key={l} className="tile" onClick={() => go('cardAction')}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
+      <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
+        {[['رمز دوم', KeyRound, 'cardAction'], ['شماره کارت', Hash, 'cardAction'], ['مسدود موقت', Snowflake, 'cardAction'], ['پشتوانه', WalletCards, 'backing'], ['تنظیمات', Settings, 'cardAction']].map(([l, Ic, to]) => (
+          <button key={l} className="tile" style={{ padding: '12px 2px', fontSize: 11 }} onClick={() => go(to)}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
         ))}
       </div>
 

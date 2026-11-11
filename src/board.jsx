@@ -33,10 +33,10 @@ function Board() {
 
       <h2>پنج تب اصلی</h2>
       <section>
-        <Phone tall tab="home" label="میلی (خانه)" note="موجودی میلی، قیمت میلی، خرید، فروش، ارسال، پرداخت، کیف پول ریالی، حواله سریع، پاداش" ><Home /></Phone>
+        <Phone tall tab="home" label="میلی (خانه)" note="موجودی میلی، قیمت میلی، خرید، فروش، ارسال، پرداخت، کیف پول ریالی، حواله سریع" ><Home /></Phone>
         <Phone tall tab="assets" label="دارایی‌ها" note="مجموع دارایی، باکس میلی (طلا به گرم)، سایر دارایی‌ها، تبدیل، مشاور هوشمند میلی"><Assets /></Phone>
-        <Phone tall tab="services" label="خدمات" note="گالری طلا، قبض، بیمه، املاک، تحویل فیزیکی، قلک‌ها، پذیرنده‌ها"><Services /></Phone>
-        <Phone tall tab="card" label="کارت و اعتبار" note="کارت، اعتبار، اقساط، وام، امتیاز اعتباری، خرید اعتباری، پشتوانه پرداخت"><Card /></Phone>
+        <Phone tall tab="services" label="خدمات" note="گالری طلا، طلاساز، قبض، بیمه، املاک، تحویل فیزیکی، قلک‌ها، پذیرنده‌ها"><Services /></Phone>
+        <Phone tall tab="card" label="کارت و اعتبار" note="کارت، اعتبار، اقساط، وام، امتیاز اعتباری، خرید اعتباری، پاداش خرید، پشتوانه پرداخت (از آیکون)"><Card /></Phone>
         <Phone tall tab="profile" label="پروفایل" note="حساب شخصی، بیزینس و خانواده، QR من، واحد نمایش"><Profile /></Phone>
       </section>
 
