@@ -10,6 +10,7 @@ import {
   Row, Logo, Avatar, Toggle, TabHead, AskBar, NavBar,
 } from './ui.jsx';
 import { salaryLine } from './extra.jsx';
+import { PnlLink } from './pnl.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa } from './format.js';
 import { MONTHS } from './store.jsx';
@@ -120,8 +121,9 @@ export function Assets() {
   const [g, setG] = useState('همه');
   const locked = (state.locks || []).reduce((s, l) => s + l.milli, 0);
   const milliToman = (state.milli + locked) * PRICE;
-  const total = milliToman + state.assets.reduce((s, a) => s + a.value, 0);
-  const parts = [{ name: 'میلی', value: milliToman, color: '#fbb918' }, ...state.assets];
+  const jarsToman = state.jars.reduce((s, j) => s + j.saved, 0) * PRICE; // قلک‌ها هم جزو مجموع دارایی است
+  const total = milliToman + jarsToman + state.assets.reduce((s, a) => s + a.value, 0);
+  const parts = [{ name: 'میلی', value: milliToman, color: '#fbb918' }, { name: 'قلک‌ها', value: jarsToman, color: '#e0a100' }, ...state.assets];
   const shown = state.assets.filter((a) => g === 'همه' || a.group === g);
   return (
     <>
@@ -129,18 +131,17 @@ export function Assets() {
       <div className="card">
         <span className="small muted">مجموع دارایی</span>
         <div className="mt8"><BigAmount toman={total} /></div>
-        <div className="between mt8">
-          <span className="small muted"><Alt t={total} /></span>
-          <Change v={5.1} suffix="در یک ماه" />
-        </div>
+        <div className="mt8"><span className="small muted"><Alt t={total} /></span></div>
         <div className="stack-bar mt16">
           {parts.map((p) => <i key={p.name} style={{ flex: p.value, background: p.color }} />)}
         </div>
         <div className="row mt12" style={{ flexWrap: 'wrap', gap: '6px 14px' }}>
-          {[['میلی', '#fbb918', milliToman], ['صندوق‌ها', '#2a49e8', 108500000], ['رمزارز', '#f7931a', 54200000], ['سهام', '#3b82f6', 8420000], ['سکه و فلزات', '#c9ced6', 29300000]].map(([n, c, v]) => (
+          {[['میلی', '#fbb918', milliToman], ['قلک‌ها', '#e0a100', jarsToman], ['صندوق‌ها', '#2a49e8', 108500000], ['رمزارز', '#f7931a', 54200000], ['سهام', '#3b82f6', 8420000], ['سکه و فلزات', '#c9ced6', 29300000]].map(([n, c, v]) => (
             <span key={n} className="row xs" style={{ gap: 6 }}><Diamond color={c} size={8} />{n} {fa(Math.round((v / total) * 100))}٪</span>
           ))}
         </div>
+        <div className="divider" />
+        <PnlLink />
       </div>
 
       <div className="row mt16" style={{ gap: 10 }}>

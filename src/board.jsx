@@ -5,6 +5,7 @@ import { Ctx, staticCtx, StatusBar, TabBar } from './ui.jsx';
 import { Home, Assets, Services, Card, Profile } from './tabs.jsx';
 import * as S from './screens.jsx';
 import { PayHub, Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { Pnl } from './pnl.jsx';
 import {
   Buy, Send, Request, Scan, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
@@ -40,6 +41,15 @@ function Board() {
         <Phone tall tab="card" label="کارت و اعتبار" note="کارت، پاداش خرید، خرده‌پول به میلی، اعتبار، اقساط، وام، پشتوانه پرداخت"><Card /></Phone>
         <Phone tall tab="services" label="خدمات" note="میلی گالری، سود طلایی، قبض، بیمه، املاک، تحویل فیزیکی، پذیرنده‌ها"><Services /></Phone>
         <Phone tall label="پروفایل" note="از آواتار بالای هر تب باز می‌شود"><Profile /></Phone>
+      </section>
+
+      <h2>سود و زیان (تازه)</h2>
+      <section>
+        <Phone tall tab="assets" label="ورودی" note="ردیف «سود و زیان ماه» در باکس مجموع دارایی؛ قلک‌ها هم در مجموع دارایی حساب می‌شود"><Assets /></Phone>
+        <Phone tall label="آبشاری · بر اساس دارایی" note="ابتدای دوره، واریز و برداشت خالص، سهم هر گروه دارایی، پایان دوره"><Pnl p={{ open: 'btc' }} /></Phone>
+        <Phone tall over={{ unit: 'toman' }} label="آبشاری · بر اساس منبع · تومان" note="تغییر قیمت، سود طلایی و صندوق، پاداش و خرده‌پول، کارمزد"><Pnl p={{ by: 'source', range: 'q', help: true }} /></Phone>
+        <Phone tall over={{ unit: 'toman' }} label="روند · تومان" note="سود و زیان تجمعی در برابر «اگر همه دارایی میلی بود»"><Pnl p={{ view: 'trend', range: 'y' }} /></Phone>
+        <Phone tall label="روند · میلی" note="خط صفر یعنی نگه‌داشتن میلی"><Pnl p={{ view: 'trend', range: 'c' }} /></Phone>
       </section>
 
       <h2>تغییرهای تازه (در انتظار تأیید)</h2>

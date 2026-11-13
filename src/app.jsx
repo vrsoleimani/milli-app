@@ -9,6 +9,7 @@ import {
 } from './flows.jsx';
 import * as S from './screens.jsx';
 import { PayHub, Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { Pnl } from './pnl.jsx';
 
 const TABS = { home: Home, assets: Assets, services: Services, card: Card };
 
@@ -62,6 +63,7 @@ const SCREENS = {
   settings: (p) => <S.Settings p={p} />,
   confirm: (p) => <S.Confirm p={p} />,
   merchants: () => <S.Merchants />,
+  pnl: (p) => <Pnl p={p} />,
 };
 const BARE = new Set(['scan']);
 
