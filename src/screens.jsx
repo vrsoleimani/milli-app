@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Gem, Hammer, ShieldCheck, Building2, Truck, Gift, Users, Star, MapPin, ArrowUpRight, ArrowDownLeft, Copy, Share2,
   Plus, Minus, ChevronUp, ChevronDown, X, Check, Fingerprint, Bell, Lock, Headphones, Info, Link2, Car, HeartPulse,
-  TrendingUp, Wallet, Store, Briefcase, User, CalendarClock, ShoppingBag, Sparkles, Coins, Eye, EyeOff, Heart,
+  TrendingUp, Wallet, Store, Search, ScanFace, Timer, ChevronLeft, Briefcase, User, CalendarClock, ShoppingBag, Sparkles, Coins, Eye, EyeOff, Heart,
 } from 'lucide-react';
 import {
   useApp, NavBar, Diamond, AssetIcon, Toggle, Row, M, Alt, Change, SectionTitle, TxIcon, Keypad, Avatar, BigAmount, Logo,
@@ -11,6 +11,7 @@ import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.
 import { fa, money, milliIn } from './format.js';
 import { monthly, MONTHS } from './store.jsx';
 import { FakeQR } from './flows.jsx';
+import { SourceRow, sourceBalance, SpendCard, TX_CAT } from './extra.jsx';
 
 /* ───────────── ابزارها ───────────── */
 function series(n, seed, vol, base) {
@@ -71,7 +72,8 @@ const Sub = ({ children }) => <div className="small muted mt8" style={{ lineHeig
 /* ───────────── تأیید پرداخت عمومی ───────────── */
 export function Confirm({ p }) {
   const { state, act, go } = useApp();
-  const ok = state.milli >= p.milli;
+  const [src, setSrc] = useState('milli');
+  const ok = sourceBalance(state, src) >= p.milli * PRICE;
   const reward = Math.round(p.milli * (p.rate ?? 0.01) * 10) / 10;
   return (
     <>
@@ -86,14 +88,14 @@ export function Confirm({ p }) {
         <div className="small muted mt8"><Alt m={p.milli} /></div>
       </div>
       <div className="card mt24">
-        <div className="between small"><span className="muted">پرداخت از</span><span className="row gap8"><Diamond size={9} />میلی · <M m={state.milli} /></span></div>
+        <SourceRow value={src} onChange={setSrc} />
         <div className="divider" />
         {reward > 0 && (<><div className="between small"><span className="muted">پاداش این خرید</span><span className="gold">+{fa(reward, 1)} میلی</span></div>
         <div className="divider" /></>)}
         <div className="between small"><span className="muted">کارمزد</span><span>رایگان</span></div>
       </div>
-      <button className="btn primary mt24" disabled={!ok} onClick={() => act('payItem', p)}>{ok ? 'پرداخت' : 'موجودی میلی کافی نیست'}</button>
-      {!ok && <button className="btn mt8" style={{ color: 'var(--gold)' }} onClick={() => go('buy')}>خرید میلی</button>}
+      <button className="btn primary mt24" disabled={!ok} onClick={() => act('payItem', { ...p, source: src })}>{ok ? 'پرداخت' : 'موجودی این منبع کافی نیست'}</button>
+      {!ok && src === 'milli' && <button className="btn mt8" style={{ color: 'var(--gold)' }} onClick={() => go('buy')}>خرید میلی</button>}
     </>
   );
 }
@@ -149,10 +151,10 @@ export function WalletPage() {
         <button className="btn ghost" onClick={() => act('withdraw', { toman: 5000000 })}><Minus size={18} />برداشت ۵ میلیون</button>
       </div>
       <button className="btn ghost mt12" onClick={() => go('buy')}>خرید میلی از این کیف پول</button>
-      <div className="between card soft mt16" style={{ padding: 14 }}>
-        <span className="col gap4"><span className="h3">۲۰٪ حقوق ماهانه خودکار میلی شود</span><span className="xs muted">روز واریز حقوق، بدون دردسر</span></span>
-        <Toggle on={state.autoRial} onClick={() => { patch((s) => ({ autoRial: !s.autoRial })); toast(state.autoRial ? 'میلی‌شدن خودکار خاموش شد' : 'میلی‌شدن خودکار روشن شد'); }} />
-      </div>
+      <button className="between card soft mt16" style={{ padding: 14, width: '100%', textAlign: 'right' }} onClick={() => go('salary')}>
+        <span className="col gap4"><span className="h3">تقسیم حقوق</span><span className="xs muted">{state.salary.on ? `${fa(state.salary.milli)}٪ میلی · ${fa(state.salary.jar)}٪ قلک · ${fa(state.salary.fund)}٪ صندوق` : 'خاموش'}</span></span>
+        <ChevronLeft size={18} className="faint" />
+      </button>
       <SectionTitle title="گردش اخیر" />
       <Row start={<span className="badge-ic"><ArrowDownLeft size={19} className="up" /></span>} title="واریز حقوق" sub="۱ آذر" end={<span className="up"><M t={32000000} /></span>} />
       <Row start={<span className="badge-ic"><Diamond /></span>} title="خرید خودکار میلی" sub="۱ آذر · ۲۰٪ حقوق" end={<span>−<M t={6400000} /></span>} />
@@ -195,16 +197,24 @@ export function Rewards() {
 export function History() {
   const { state } = useApp();
   const [f, setF] = useState('all');
-  const list = state.tx.filter((t) => f === 'all' || (f === 'in' ? t.milli > 0 : t.milli < 0));
+  const [q, setQ] = useState('');
+  const [cat, setCat] = useState('همه');
+  const cats = ['همه', 'خوراک و کافه', 'خرید', 'قبض و شارژ', 'انتقال'];
+  const list = state.tx.filter((t) => (f === 'all' || (f === 'in' ? t.milli > 0 : t.milli < 0)) && (!q || t.title.includes(q) || t.sub.includes(q)) && (cat === 'همه' || TX_CAT[t.icon] === cat));
   return (
     <>
-      <NavBar title="تراکنش‌ها" />
-      <div className="segment">{[['all', 'همه'], ['in', 'دریافتی'], ['out', 'پرداختی']].map(([id, l]) => <button key={id} className={f === id ? 'on' : ''} onClick={() => setF(id)}>{l}</button>)}</div>
+      <NavBar title="تراکنش‌ها و خرج" />
+      <SpendCard />
+      <div className="field row mt16" style={{ padding: '10px 14px' }}><Search size={18} className="muted" /><input className="grow" placeholder="جستجو در تراکنش‌ها" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+      <div className="hscroll mt12" style={{ gap: 8 }}>{cats.map((x) => <button key={x} className={`pill ${cat === x ? 'active' : ''}`} onClick={() => setCat(x)}>{x}</button>)}</div>
+      <div className="segment mt12">{[['all', 'همه'], ['in', 'دریافتی'], ['out', 'پرداختی']].map(([id, l]) => <button key={id} className={f === id ? 'on' : ''} onClick={() => setF(id)}>{l}</button>)}</div>
       <div className="mt12">
         {list.map((t) => (
-          <Row key={t.id} start={<TxIcon kind={t.icon} />} title={t.title} sub={t.sub}
-            end={<span className={t.milli > 0 ? 'up' : ''}>{t.milli > 0 ? '+' : '−'}<M m={Math.abs(t.milli)} /></span>} />
+          <Row key={t.id} start={<TxIcon kind={t.icon} />} title={t.title} sub={`${t.sub}${TX_CAT[t.icon] ? ` · ${TX_CAT[t.icon]}` : ''}`}
+            end={<span className={t.milli > 0 ? 'up' : ''}>{t.milli > 0 ? '+' : '−'}<M m={Math.abs(t.milli)} /></span>}
+            endSub={<span className="xs muted"><Alt m={Math.abs(t.milli)} /></span>} />
         ))}
+        {!list.length && <div className="small muted" style={{ textAlign: 'center', padding: 24 }}>تراکنشی پیدا نشد</div>}
       </div>
     </>
   );
@@ -372,10 +382,10 @@ export function Advisor() {
 }
 
 /* ───────────── اعتبار ───────────── */
-export function CreditBuy() {
+export function CreditBuy({ p = {} }) {
   const { state, act } = useApp();
   const left = state.credit.limit - state.credit.used;
-  const [mi, setMi] = useState(0);
+  const [mi, setMi] = useState(Math.max(0, merchants.findIndex((x) => x.name === p.merchant)));
   const [amt, setAmt] = useState(10000000);
   const [months, setMonths] = useState(6);
   const m = monthly(amt, months);
@@ -535,8 +545,8 @@ export function Gallery() {
   ].map(([name, g]) => ({ name, g, milli: Math.round(g * 1000 * 1.12) }));
   return (
     <>
-      <NavBar title="گالری طلا" />
-      <Sub>جواهرات آماده، با قیمت لحظه‌ای طلا و پرداخت با میلی.</Sub>
+      <NavBar title="میلی گالری" />
+      <Sub>فروشگاه مصنوعات طلا (milli.gallery)؛ با قیمت لحظه‌ای طلا، پرداخت با میلی و ارسال درب منزل.</Sub>
       <div className="mt16" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {items.map((it) => (
           <div className="card" key={it.name} style={{ padding: 14 }}>
@@ -544,7 +554,7 @@ export function Gallery() {
             <div className="h3 mt12">{it.name}</div>
             <div className="xs muted mt8 num">{fa(it.g)} گرم · ۱۸ عیار</div>
             <div className="h3 mt8"><M m={it.milli} /></div>
-            <button className="btn primary mt12" style={{ height: 40, fontSize: 14 }} onClick={() => go('confirm', { title: it.name, sub: `${fa(it.g)} گرم · ۱۸ عیار`, milli: it.milli, rate: 0.02, icon: 'shop', txSub: 'گالری طلا', big: <Gem size={30} />, successTitle: 'خرید انجام شد' })}>خرید</button>
+            <button className="btn primary mt12" style={{ height: 40, fontSize: 14 }} onClick={() => go('confirm', { title: it.name, sub: `${fa(it.g)} گرم · ۱۸ عیار`, milli: it.milli, rate: 0.02, icon: 'shop', txSub: 'میلی گالری', big: <Gem size={30} />, successTitle: 'خرید انجام شد' })}>خرید</button>
           </div>
         ))}
       </div>
@@ -552,30 +562,42 @@ export function Gallery() {
   );
 }
 
-export function Goldsmith() {
-  const { go } = useApp();
-  const types = ['انگشتر', 'گردنبند', 'دستبند', 'گوشواره'];
-  const [t, setT] = useState(types[0]);
-  const [g, setG] = useState(3);
-  const wage = 0.1;
-  const milli = Math.round(g * 1000 * (1 + wage));
+export function GoldYield() {
+  const { state, act } = useApp();
+  const [pc, setPc] = useState(0.5);
+  const [months, setMonths] = useState(6);
+  const m = Math.floor(state.milli * pc);
+  const per = Math.round(m * 0.01 * 10) / 10;
+  const locked = (state.locks || []).reduce((x, l) => x + l.milli, 0);
   return (
     <>
-      <NavBar title="طلاساز" />
-      <Sub>طرح دلخواهت را سفارش بده؛ طلاساز می‌سازد و درب منزل می‌رسد.</Sub>
-      <div className="h3 mt16">نوع جواهر</div>
-      <div className="hscroll mt8">{types.map((x) => <button key={x} className={`pill ${t === x ? 'active' : ''}`} onClick={() => setT(x)}>{x}</button>)}</div>
-      <div className="mt16"><Stepper v={g} set={setG} min={1} max={20} label="وزن (گرم)" /></div>
-      <div className="card mt16">
-        <div className="between small"><span className="muted">طلای ۱۸ عیار</span><span className="num"><M m={g * 1000} /></span></div>
-        <div className="divider" />
-        <div className="between small"><span className="muted">دستمزد ساخت (۱۰٪)</span><span className="num"><M m={Math.round(g * 1000 * wage)} /></span></div>
-        <div className="divider" />
-        <div className="between small"><span className="muted">زمان تحویل</span><span>۷ روز کاری</span></div>
-        <div className="divider" />
-        <div className="between"><span className="h3">جمع</span><span className="h2"><M m={milli} /></span></div>
+      <NavBar title="سود طلایی" />
+      <div className="card gold" style={{ textAlign: 'center' }}>
+        <TrendingUp size={30} className="gold" />
+        <div className="big-num num mt8">۱٪<small>سود ماهانه</small></div>
+        <Sub>طلایت را حداقل ۶ ماه نگه دار و هر ماه ۱٪ آن را به میلی سود بگیر.</Sub>
       </div>
-      <button className="btn primary mt24" onClick={() => go('confirm', { title: `سفارش ${t}`, sub: `${fa(g)} گرم · ساخت سفارشی`, milli, rate: 0.01, icon: 'shop', txSub: 'طلاساز', big: <Hammer size={30} />, successTitle: 'سفارش ثبت شد' })}>ادامه</button>
+      {locked > 0 && (
+        <div className="card soft mt12 between" style={{ padding: 14 }}>
+          <span className="col gap4"><span className="h3">طلای تو در سود طلایی</span><span className="xs muted">سود ماهانه {fa(Math.round(locked * 0.01 * 10) / 10, 1)} میلی</span></span>
+          <span className="h3 gold"><M m={locked} /></span>
+        </div>
+      )}
+      <div className="h3 mt24">چه مقدار از میلی‌هایت؟</div>
+      <div className="segment mt8">{[['۲۵٪', 0.25], ['۵۰٪', 0.5], ['همه', 1]].map(([l, v]) => <button key={l} className={pc === v ? 'on' : ''} onClick={() => setPc(v)}>{l}</button>)}</div>
+      <div className="amount-entry"><div className="val num">{fa(m)}<small>میلی</small></div><div className="small muted mt8 num">≈ {fa(m * PRICE)} تومان · از {fa(state.milli)} میلی</div></div>
+      <div className="h3">مدت</div>
+      <div className="segment mt8">{[6, 9, 12].map((x) => <button key={x} className={months === x ? 'on' : ''} onClick={() => setMonths(x)}>{fa(x)} ماه</button>)}</div>
+      <div className="card mt16">
+        <div className="between small"><span className="muted">سود هر ماه</span><span className="gold num">+{fa(per, 1)} میلی</span></div>
+        <div className="divider" />
+        <div className="between small"><span className="muted">جمع سود در {fa(months)} ماه</span><span className="gold num">+{fa(per * months, 1)} میلی</span></div>
+        <div className="divider" />
+        <div className="between small"><span className="muted">واریز سود</span><span>اول هر ماه، به موجودی میلی</span></div>
+        <div className="divider" />
+        <div className="between small"><span className="muted">آزاد شدن طلا</span><span>پس از {fa(months)} ماه</span></div>
+      </div>
+      <button className="btn primary mt24" disabled={!m} onClick={() => act('lock', { milli: m, months })}>شروع سود طلایی</button>
     </>
   );
 }
@@ -853,7 +875,9 @@ export function Backing() {
 
 /* ───────────── تنظیمات و پروفایل ───────────── */
 export function Settings({ p }) {
-  const { toast } = useApp();
+  const { toast, state, patch } = useApp();
+  const pr = state.protect;
+  const tp = (k) => patch((s) => ({ protect: { ...s.protect, [k]: !s.protect[k] } }));
   const [sw, setSw] = useState({ fp: true, pin: true, two: true, a: true, b: true, c: false, d: true });
   const tg = (k) => setSw((s) => ({ ...s, [k]: !s[k] }));
   const R = (k, t, s) => <Row key={k} title={t} sub={s} end={<Toggle on={sw[k]} onClick={() => tg(k)} />} />;
@@ -866,6 +890,15 @@ export function Settings({ p }) {
           {R('pin', 'قفل برنامه با رمز')}
           {R('two', 'تأیید دومرحله‌ای', 'کد پیامکی هنگام ورود')}
           <Row title="تغییر رمز" chevron onClick={() => toast('لینک تغییر رمز پیامک شد')} />
+        </div>
+        <SectionTitle title="محافظت از دارایی" />
+        <div className="card gold row"><ShieldCheck size={22} className="gold" /><span className="grow small" style={{ lineHeight: 1.9 }}>انتقال‌های بزرگ فقط با تأیید خودت انجام می‌شود؛ حتی اگر گوشی دست کس دیگری باشد.</span></div>
+        <div className="card mt12" style={{ padding: '4px 18px' }}>
+          <Row start={<span className="badge-ic"><ScanFace size={19} /></span>} title="تأیید چهره برای انتقال بزرگ" sub={`بالاتر از ${fa(pr.limit)} میلی`} end={<Toggle on={pr.face} onClick={() => tp('face')} />} />
+          <Row start={<span className="badge-ic"><Coins size={19} /></span>} title="سقف بدون تأیید چهره" sub="برای انتقال، فروش و برداشت" end={<span className="num">{fa(pr.limit)} میلی</span>} chevron
+            onClick={() => patch((s) => ({ protect: { ...s.protect, limit: s.protect.limit === 5000 ? 10000 : s.protect.limit === 10000 ? 2000 : 5000 } }))} />
+          <Row start={<span className="badge-ic"><MapPin size={19} /></span>} title="مکان‌های امن" sub="خانه و محل کار" end={<Toggle on={pr.places} onClick={() => tp('places')} />} />
+          <Row start={<span className="badge-ic"><Timer size={19} /></span>} title="مکث یک‌ساعته بیرون از مکان‌های امن" sub="برای انتقال‌های بالاتر از سقف" end={<Toggle on={pr.delay} onClick={() => tp('delay')} />} />
         </div>
       </>
     );

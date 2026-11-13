@@ -8,16 +8,23 @@ import {
   Buy, Send, Request, Scan, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
 import * as S from './screens.jsx';
+import { PayHub, Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
 
-const TABS = { home: Home, assets: Assets, services: Services, card: Card, profile: Profile };
+const TABS = { home: Home, assets: Assets, services: Services, card: Card };
 
 const SCREENS = {
   welcome: () => <Welcome />,
   onbPhone: () => <OnbPhone />,
   onbGift: () => <OnbGift />,
+  profile: () => <Profile />,
+  payhub: () => <PayHub />,
+  split: () => <Split />,
+  assistant: () => <Assistant />,
+  salary: () => <SalarySplit />,
+  roundup: () => <RoundUp />,
   buy: (p) => <Buy preset={p.preset} />,
   sell: () => <S.Sell />,
-  send: (p) => <Send to={p.to} />,
+  send: (p) => <Send to={p.to} preset={p.preset} gift={p.gift} />,
   request: () => <Request />,
   scan: () => <Scan />,
   pay: () => <Pay />,
@@ -36,14 +43,14 @@ const SCREENS = {
   buyAsset: (p) => <S.BuyAsset p={p} />,
   asset: (p) => <S.AssetPage p={p} />,
   advisor: () => <S.Advisor />,
-  credit: () => <S.CreditBuy />,
+  credit: (p) => <S.CreditBuy p={p} />,
   loan: () => <S.Loan />,
   installments: () => <S.Installments />,
   payInstallment: (p) => <S.PayInstallment p={p} />,
   score: () => <S.Score />,
   insurance: () => <S.Insurance />,
   gallery: () => <S.Gallery />,
-  goldsmith: () => <S.Goldsmith />,
+  goldyield: () => <S.GoldYield />,
   realestate: () => <S.RealEstate />,
   delivery: () => <S.Delivery />,
   giftcard: () => <S.GiftCard />,

@@ -33,6 +33,17 @@ const addInst = (s, title, toman, months) => ({
   installments: [...s.installments, { id: `i${Date.now()}`, title, monthly: monthly(toman, months), left: months, k: 0, total: months }],
 });
 const NO = { error: 'موجودی کافی نیست' };
+const SRC = { milli: 'میلی', rial: 'کیف پول ریالی' };
+// برداشت از منبع انتخابی (میلی، کیف پول ریالی یا یک دارایی)
+function debit(s, source = 'milli', milli) {
+  const toman = Math.round(milli * PRICE);
+  if (source === 'milli') return milli > s.milli ? null : { ...s, milli: round(s.milli - milli) };
+  if (source === 'rial') return toman > s.rial ? null : { ...s, rial: s.rial - toman };
+  const a = s.assets.find((x) => x.id === source);
+  if (!a || toman > a.value) return null;
+  return { ...s, assets: s.assets.map((x) => (x.id === source ? { ...x, value: x.value - toman } : x)) };
+}
+const srcName = (s, id = 'milli') => SRC[id] || s.assets.find((x) => x.id === id)?.name || 'میلی';
 
 // هر کنش: وضعیت تازه و پیام موفقیت یا خطا
 function apply(s, kind, p) {
@@ -56,20 +67,22 @@ function apply(s, kind, p) {
     case 'send': {
       const m = round(p.milli);
       if (m > s.milli) return NO;
-      return { s: addTx({ ...s, milli: round(s.milli - m) }, txOf(p.to, 'ارسال · الان', -m, 'out')), ok: { title: 'ارسال انجام شد', amount: m, sub: `به ${p.to}` } };
+      return { s: addTx({ ...s, milli: round(s.milli - m) }, txOf(p.to, `${p.gift ? `هدیه ${p.gift}` : 'ارسال'} · الان`, -m, p.gift ? 'gift' : 'out')), ok: { title: p.gift ? 'هدیه ارسال شد' : 'ارسال انجام شد', amount: m, sub: p.gift ? `کارت ${p.gift} برای ${p.to}` : `به ${p.to}` } };
     }
     case 'request':
       return { s, ok: { title: 'درخواست ارسال شد', sub: `برای ${p.to}`, hideAmount: true } };
     case 'pay': {
-      if (p.milli > s.milli) return NO;
-      const t = addTx({ ...s, milli: round(s.milli - p.milli + p.reward), rewardsMonth: s.rewardsMonth + p.reward }, txOf(p.to, 'پرداخت QR · الان', -p.milli, 'qr'));
+      const d = debit(s, p.source, p.milli);
+      if (!d) return NO;
+      const t = addTx({ ...d, milli: round(d.milli + p.reward), rewardsMonth: s.rewardsMonth + p.reward }, txOf(p.to, `پرداخت QR · از ${srcName(s, p.source)} · الان`, -p.milli, 'qr'));
       return { s: t, ok: { title: 'پرداخت انجام شد', amount: p.milli, sub: `به ${p.to}`, reward: p.reward } };
     }
     case 'payItem': {
       const m = round(p.milli, 1);
-      if (m > s.milli) return NO;
+      const d = debit(s, p.source, m);
+      if (!d) return NO;
       const reward = round(m * (p.rate ?? 0.01), 1);
-      let n = { ...s, milli: round(s.milli - m + reward), rewardsMonth: round(s.rewardsMonth + reward, 1) };
+      let n = { ...d, milli: round(d.milli + reward), rewardsMonth: round(s.rewardsMonth + reward, 1) };
       if (p.kind === 'installment') {
         n.credit = { ...s.credit, used: Math.max(0, s.credit.used - p.toman) };
         n.installments = s.installments.map((i) => (i.id === p.instId ? { ...i, left: i.left - 1, k: i.k + 1 } : i)).filter((i) => i.left > 0);
@@ -96,8 +109,21 @@ function apply(s, kind, p) {
     }
     case 'jar':
       return {
-        s: { ...s, jars: [...s.jars, { id: `j${Date.now()}`, name: p.name, icon: p.icon, saved: 0, goal: 120000, auto: `${p.freq} ${p.per} میلی` }] },
+        s: { ...s, jars: [...s.jars, { id: `j${Date.now()}`, name: p.name, icon: p.icon, saved: 0, goal: 120000, auto: p.group ? `گروهی · ${fa(p.group + 1)} نفر` : `${p.freq} ${p.per} میلی`, group: !!p.group }] },
         ok: { title: 'قلک ساخته شد', sub: p.name, hideAmount: true },
+      };
+    case 'lock': {
+      const m = round(p.milli);
+      if (m > s.milli) return NO;
+      return {
+        s: addTx({ ...s, milli: round(s.milli - m), locks: [...(s.locks || []), { id: `l${Date.now()}`, milli: m, months: p.months }] }, txOf('سود طلایی', `مسدود برای ${fa(p.months)} ماه · الان`, -m, 'buy')),
+        ok: { title: 'سود طلایی فعال شد', amount: m, sub: `ماهانه ${fa(round(m * 0.01, 1), 1)} میلی سود · ${fa(p.months)} ماه` },
+      };
+    }
+    case 'split':
+      return {
+        s: { ...s, splits: [{ id: `s${Date.now()}`, title: p.title, total: p.total, people: p.people, paid: 0 }, ...s.splits] },
+        ok: { title: 'درخواست دنگ ارسال شد', amount: round(p.total / (p.people + 1), 1), sub: `سهم هر نفر · ${p.title} · ${fa(p.people)} نفر` },
       };
     case 'creditUp':
       return { s: { ...s, credit: { ...s.credit, limit: p.limit } }, ok: { title: 'سقف اعتبار بالا رفت', sub: `سقف تازه ${fa(p.limit / 1e6)} میلیون تومان`, hideAmount: true } };

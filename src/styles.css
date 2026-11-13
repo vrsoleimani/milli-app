@@ -234,3 +234,29 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: non
   .app-root .screen { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
   .app-root .tabbar { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
+
+/* ───── ناوبری تازه: دکمه پرداخت وسط، آواتار پروفایل، دستیار ───── */
+.tabbar { align-items: flex-end; }
+.tab { width: 68px; }
+.tab.pay { color: #fff; font-weight: 700; gap: 6px; }
+.tab.pay .fab {
+  width: 56px; height: 56px; margin-top: -30px; border-radius: 20px; background: var(--gold); color: var(--gold-ink);
+  display: grid; place-items: center; box-shadow: 0 0 0 6px #000, 0 8px 24px rgba(251,185,24,.3);
+}
+.tab.pay > span:last-child { margin-bottom: 8px; }
+.avatar.me { width: 42px; height: 42px; font-size: 17px; background: var(--gold); }
+.avatar.me.sm { width: 34px; height: 34px; font-size: 14px; }
+.ask-bar {
+  display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; border-radius: 999px;
+  background: var(--surface); border: 1px solid #2a2a2a; font-size: 14px;
+}
+form.ask-bar { padding: 0 4px 0 14px; position: sticky; bottom: 0; }
+.bubble { max-width: 86%; padding: 12px 14px; border-radius: 18px 18px 18px 6px; background: var(--surface); font-size: 14px; line-height: 1.9; align-self: flex-end; }
+.bubble.me { align-self: flex-start; background: var(--gold); color: var(--gold-ink); font-weight: 700; border-radius: 18px 18px 6px 18px; }
+.source-list { margin-top: 10px; background: var(--surface-2); border-radius: 14px; padding: 4px 12px; }
+.source-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 0; font-size: 13px; border-bottom: 1px solid var(--line); }
+.source-opt:last-child { border-bottom: 0; }
+.source-opt.on { font-weight: 800; }
+.jar { position: relative; }
+.jar.promo { min-width: 200px; text-align: right; }
+.jar .grp { position: absolute; top: 14px; left: 14px; color: var(--gold); }

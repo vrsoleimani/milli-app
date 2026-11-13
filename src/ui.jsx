@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import {
   Bell, ScanLine, Eye, EyeOff, ChevronDown, ChevronRight, ChevronLeft, PieChart,
-  LayoutGrid, CreditCard, User, QrCode, ArrowDownLeft, Gift, Receipt, Plus, Delete, ArrowUpRight, Minus, ShoppingBag,
+  LayoutGrid, CreditCard, User, QrCode, Sparkles, ArrowDownLeft, Gift, Receipt, Plus, Delete, ArrowUpRight, Minus, ShoppingBag,
 } from 'lucide-react';
 import { fa, money, milliIn, pct, HIDDEN } from './format.js';
 import { initialState } from './data.js';
@@ -12,8 +12,17 @@ export const useApp = () => useContext(Ctx);
 // زمینه پیش‌فرض برای حالت نمایش (صفحه طرح‌ها)
 export function staticCtx(over = {}) {
   return {
-    state: initialState, unit: 'milli', hidden: false, tab: 'home',
-    setUnit() {}, toggleHidden() {}, go() {}, back() {}, setTab() {}, act() {},
+    state: {
+      ...initialState, account: 'personal', frozen: false,
+      accounts: [
+        { id: 'personal', label: 'حساب شخصی', sub: 'فعال', type: 'personal' },
+        { id: 'business', label: 'کافه نارنج', sub: 'حساب بیزینس', type: 'business' },
+        { id: 'family', label: 'خانواده رضایی', sub: 'حساب خانواده', type: 'family' },
+      ],
+      installments: [{ id: 'i1', title: 'خرید اعتباری', monthly: 4200000, left: 7, k: 0, total: 12 }],
+    },
+    unit: 'milli', hidden: false, tab: 'home',
+    setUnit() {}, toggleHidden() {}, go() {}, back() {}, setTab() {}, act() {}, toast() {}, patch() {},
     ...over,
   };
 }
@@ -41,23 +50,28 @@ export function StatusBar() {
 }
 
 export function TabBar() {
-  const { tab, setTab } = useApp();
+  const { tab, setTab, go } = useApp();
   const tabs = [
     { id: 'home', label: 'میلی', icon: <MilliTabIcon /> },
     { id: 'assets', label: 'دارایی‌ها', icon: <PieChart size={23} strokeWidth={1.7} /> },
-    { id: 'services', label: 'خدمات', icon: <LayoutGrid size={23} strokeWidth={1.7} /> },
+    { id: 'pay', label: 'پرداخت' },
     { id: 'card', label: 'کارت و اعتبار', icon: <CreditCard size={23} strokeWidth={1.7} /> },
-    { id: 'profile', label: 'پروفایل', icon: <User size={23} strokeWidth={1.7} /> },
+    { id: 'services', label: 'خدمات', icon: <LayoutGrid size={23} strokeWidth={1.7} /> },
   ];
   return (
     <nav className="tabbar">
-      {tabs.map((t) => (
+      {tabs.map((t) => (t.id === 'pay' ? (
+        <button key="pay" className="tab pay" onClick={() => go('payhub')} aria-label="پرداخت و انتقال">
+          <span className="fab"><QrCode size={25} strokeWidth={2} /></span>
+          <span>{t.label}</span>
+        </button>
+      ) : (
         <button key={t.id} className={`tab ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}>
           {t.icon}
           <span>{t.label}</span>
           <span className="dot" />
         </button>
-      ))}
+      )))}
     </nav>
   );
 }
@@ -75,14 +89,38 @@ export function TopBar() {
   const acct = state.accounts?.find((a) => a.id === state.account);
   return (
     <div className="topbar">
-      <Logo />
+      <button className="avatar me" onClick={() => go('profile')} aria-label="پروفایل">ع</button>
       <div className="grow col">
         <span className="h3">علی رضایی</span>
         <span><button className="acct-chip" onClick={() => go('accounts')}>{acct ? acct.label : 'حساب شخصی'} <ChevronDown size={13} /></button></span>
       </div>
-      <button className="icon-btn" onClick={() => go('scan')} aria-label="اسکن"><ScanLine size={20} /></button>
       <button className="icon-btn" onClick={() => go('notifications')} aria-label="اعلان‌ها"><Bell size={20} /></button>
     </div>
+  );
+}
+
+// سربرگ تب‌ها: آواتار (پروفایل)، عنوان، کلیدهای نمایش
+export function TabHead({ title }) {
+  const { go } = useApp();
+  return (
+    <div className="between" style={{ padding: '6px 0 16px' }}>
+      <span className="row" style={{ gap: 10 }}>
+        <button className="avatar me sm" onClick={() => go('profile')} aria-label="پروفایل">ع</button>
+        <span className="h1">{title}</span>
+      </span>
+      <ViewToggles />
+    </div>
+  );
+}
+
+// نوار دستیار میلی
+export function AskBar() {
+  const { go } = useApp();
+  return (
+    <button className="ask-bar" style={{ width: '100%', marginBottom: 14 }} onClick={() => go('assistant')}>
+      <Sparkles size={18} className="gold" />
+      <span className="grow muted" style={{ textAlign: 'right' }}>بپرس یا بگو چه کنم…</span>
+    </button>
   );
 }
 

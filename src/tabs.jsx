@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import {
   Plus, Minus, Send, QrCode, Wallet, ChevronLeft, Sparkles, ArrowLeftRight, HandCoins,
   ShoppingBag, Landmark, CalendarClock, Gauge, Receipt, ShieldCheck, Building2, Truck, MapPin,
-  Gift, Users, Star, KeyRound, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
+  Gift, Users, Star, KeyRound, PiggyBank, X, TrendingUp, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
   HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards, LogOut,
 } from 'lucide-react';
 import {
   useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
-  Row, Logo, Avatar, Toggle,
+  Row, Logo, Avatar, Toggle, TabHead, AskBar, NavBar,
 } from './ui.jsx';
+import { salaryLine } from './extra.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa } from './format.js';
 import { MONTHS } from './store.jsx';
@@ -16,9 +17,12 @@ import { MONTHS } from './store.jsx';
 /* ───────────── تب میلی (خانه) ───────────── */
 export function Home() {
   const { state, go } = useApp();
+  const [tip, setTip] = useState(true);
+  const next = state.installments?.[0];
   return (
     <>
       <TopBar />
+      <AskBar />
       <div className="balance-card">
         <div className="between">
           <span className="muted small">موجودی میلی</span>
@@ -42,14 +46,25 @@ export function Home() {
       <div className="actions">
         <button className="action main" onClick={() => go('buy')}><span className="ic"><Plus size={24} /></span>خرید</button>
         <button className="action" onClick={() => go('sell')}><span className="ic"><Minus size={22} /></span>فروش</button>
-        <button className="action" onClick={() => go('scan')}><span className="ic"><QrCode size={22} /></span>پرداخت</button>
+        <button className="action" onClick={() => go('send')}><span className="ic"><Send size={22} /></span>انتقال</button>
       </div>
+
+      {tip && next && (
+        <div className="card gold mt16 row" style={{ padding: 14 }}>
+          <Sparkles size={20} className="gold" />
+          <button className="grow col gap4" style={{ textAlign: 'right' }} onClick={() => go('payInstallment', { id: next.id })}>
+            <span className="h3">قسط ۲۵ {MONTHS[next.k % 12]} نزدیک است</span>
+            <span className="xs muted">با یک لمس از میلی بپرداز · <M t={next.monthly} /></span>
+          </button>
+          <button onClick={() => setTip(false)} aria-label="بستن" className="faint"><X size={17} /></button>
+        </div>
+      )}
 
       <button className="card mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('wallet')}>
         <span className="badge-ic"><Wallet size={20} /></span>
         <span className="grow col gap4">
           <span className="h3">کیف پول ریالی</span>
-          <span className="xs muted">۲۰٪ حقوق ماهانه خودکار میلی می‌شود</span>
+          <span className="xs muted">تقسیم حقوق: {salaryLine(state.salary)}</span>
         </span>
         <span className="col" style={{ alignItems: 'flex-end' }}>
           <span className="h3 num"><Rial t={state.rial} /></span>
@@ -57,16 +72,17 @@ export function Home() {
         <ChevronLeft size={18} className="faint" />
       </button>
 
-      <SectionTitle title="انتقال" link="درخواست میلی" onLink={() => go('request')} />
+      <SectionTitle title="برای تو" />
       <div className="hscroll">
-        <button className="col gap8" style={{ alignItems: 'center', minWidth: 60 }} onClick={() => go('send')}>
-          <span className="avatar" style={{ background: 'var(--surface)', color: '#fff' }}><Plus size={22} /></span>
-          <span className="xs">جدید</span>
-        </button>
-        {contacts.map((c) => (
-          <button key={c.id} className="col gap8" style={{ alignItems: 'center', minWidth: 60 }} onClick={() => go('send', { to: c.id })}>
-            <Avatar c={c} />
-            <span className="xs">{c.name.split(' ')[0]}</span>
+        {[
+          ['loan', Landmark, 'دریافت وام', 'با پشتوانه دارایی‌هایت، در چند دقیقه', {}],
+          ['credit', Gem, 'خرید قسطی طلا', 'امروز بخر، تا ۱۲ قسط بپرداز', { merchant: 'میلی گالری' }],
+          ['goldyield', TrendingUp, 'سود طلایی', 'ماهانه ۱٪ سود، به میلی', {}],
+        ].map(([id, Ic, t, d, p]) => (
+          <button key={id} className="jar promo" onClick={() => go(id, p)}>
+            <Ic size={24} className="gold" />
+            <div className="h3 mt8">{t}</div>
+            <div className="xs muted mt8">{d}</div>
           </button>
         ))}
       </div>
@@ -102,16 +118,14 @@ const GROUPS = ['همه', 'فلزات', 'رمزارز', 'سهام', 'صندوق'
 export function Assets() {
   const { state, go, hidden } = useApp();
   const [g, setG] = useState('همه');
-  const milliToman = state.milli * PRICE;
+  const locked = (state.locks || []).reduce((s, l) => s + l.milli, 0);
+  const milliToman = (state.milli + locked) * PRICE;
   const total = milliToman + state.assets.reduce((s, a) => s + a.value, 0);
   const parts = [{ name: 'میلی', value: milliToman, color: '#fbb918' }, ...state.assets];
   const shown = state.assets.filter((a) => g === 'همه' || a.group === g);
   return (
     <>
-      <div className="between" style={{ padding: '6px 0 16px' }}>
-        <span className="h1">دارایی‌ها</span>
-        <ViewToggles />
-      </div>
+      <TabHead title="دارایی‌ها" />
       <div className="card">
         <span className="small muted">مجموع دارایی</span>
         <div className="mt8"><BigAmount toman={total} /></div>
@@ -139,13 +153,35 @@ export function Assets() {
         <span className="badge-ic" style={{ background: '#000' }}><Diamond /></span>
         <span className="grow col gap4">
           <span className="h3">طلا</span>
-          <span className="small muted num">{hidden ? '••••' : `${fa(state.milli / 1000, 2)} گرم`}</span>
+          <span className="small muted num">{hidden ? '••••' : `${fa((state.milli + locked) / 1000, 2)} گرم`}</span>
         </span>
         <span className="col gap4" style={{ alignItems: 'flex-end' }}>
           <span className="h3"><M t={milliToman} /></span>
           <Change v={3.1} />
         </span>
       </button>
+      {locked > 0 && (
+        <button className="row mt8 card soft" style={{ padding: 14, width: '100%', textAlign: 'right' }} onClick={() => go('goldyield')}>
+          <TrendingUp size={20} className="gold" />
+          <span className="grow small">در سود طلایی · ماهانه ۱٪</span>
+          <span className="small gold"><M m={locked} /></span>
+          <ChevronLeft size={16} className="faint" />
+        </button>
+      )}
+
+      <SectionTitle title="قلک‌ها" link="قلک تازه" onLink={() => go('jar')} />
+      <div className="hscroll">
+        {state.jars.map((j) => (
+          <div className="jar" key={j.id}>
+            {j.group && <Users size={16} className="grp" />}
+            <div style={{ fontSize: 24 }}>{j.icon}</div>
+            <div className="h3 mt8">{j.name}</div>
+            <div className="small mt8"><M m={j.saved} /></div>
+            <div className="bar mt8"><i style={{ width: `${Math.max(4, (j.saved / j.goal) * 100)}%` }} /></div>
+            <div className="xs muted mt8">{j.auto}</div>
+          </div>
+        ))}
+      </div>
 
       <SectionTitle title="سایر دارایی‌ها" />
       <div className="hscroll" style={{ gap: 8 }}>
@@ -174,34 +210,18 @@ export function Assets() {
 export function Services() {
   const { state, go } = useApp();
   const tiles = [
-    ['gallery', 'گالری طلا', Gem], ['goldsmith', 'طلاساز', Hammer], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
+    ['gallery', 'میلی گالری', Gem], ['goldyield', 'سود طلایی', TrendingUp], ['bills', 'قبض و شارژ', Receipt], ['insurance', 'بیمه', ShieldCheck],
     ['realestate', 'املاک', Building2], ['delivery', 'تحویل فیزیکی', Truck], ['giftcard', 'کارت هدیه', Gift],
     ['family', 'خانواده', Users], ['rewards', 'باشگاه پاداش', Star],
   ];
   return (
     <>
-      <div className="between" style={{ padding: '6px 0 16px' }}>
-        <span className="h1">خدمات</span>
-        <ViewToggles />
-      </div>
+      <TabHead title="خدمات" />
       <div className="grid4" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         {tiles.map(([id, label, Ic]) => (
           <button key={id} className="tile" onClick={() => go(id)}>
             <span className="ic"><Ic size={23} strokeWidth={1.7} /></span>{label}
           </button>
-        ))}
-      </div>
-
-      <SectionTitle title="قلک‌ها" link="قلک تازه" onLink={() => go('jar')} />
-      <div className="hscroll">
-        {state.jars.map((j) => (
-          <div className="jar" key={j.id}>
-            <div style={{ fontSize: 24 }}>{j.icon}</div>
-            <div className="h3 mt8">{j.name}</div>
-            <div className="small mt8"><M m={j.saved} /></div>
-            <div className="bar mt8"><i style={{ width: `${Math.max(4, (j.saved / j.goal) * 100)}%` }} /></div>
-            <div className="xs muted mt8">{j.auto}</div>
-          </div>
         ))}
       </div>
 
@@ -242,10 +262,7 @@ export function Card() {
   const next = state.installments[0];
   return (
     <>
-      <div className="between" style={{ padding: '6px 0 16px' }}>
-        <span className="h1">کارت و اعتبار</span>
-        <ViewToggles />
-      </div>
+      <TabHead title="کارت و اعتبار" />
       <div className="bank-card">
         <div className="between">
           <Logo size={36} />
@@ -263,6 +280,13 @@ export function Card() {
         <span className="grow small">۱٪ هر خرید با کارت، میلی به حسابت برمی‌گردد</span>
         <span className="small gold"><M m={state.rewardsMonth} /></span>
       </div>
+
+      <button className="row mt8 card soft" style={{ padding: 14, width: '100%', textAlign: 'right' }} onClick={() => go('roundup')}>
+        <PiggyBank size={20} className="gold" />
+        <span className="grow small">خرده‌پول هر خرید، میلی می‌شود{state.roundup.on ? '' : ' (خاموش)'}</span>
+        <span className="small gold"><M m={state.roundup.saved} /></span>
+        <ChevronLeft size={16} className="faint" />
+      </button>
 
       <SectionTitle title="اعتبار شما" link="افزایش سقف" onLink={() => go('creditUp')} />
       <div className="card">
@@ -301,7 +325,7 @@ export function Card() {
       </div>
 
       <SectionTitle title="خریدهای اخیر" />
-      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="دیجی‌کالا" sub="امروز · از میلی" end={<span>−<M m={312} /></span>} endSub={<span className="gold xs">+۳ میلی پاداش</span>} />
+      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="دیجی‌کالا" sub="امروز · از میلی" end={<span>−<M m={312} /></span>} endSub={<span className="gold xs">+۳ پاداش · +۱ خرده‌پول</span>} />
       <Row start={<span className="badge-ic"><Store size={19} /></span>} title="افق کوروش" sub="دیروز · از میلی" end={<span>−<M m={88} /></span>} endSub={<span className="gold xs">+۱ میلی پاداش</span>} />
       <Row start={<span className="badge-ic"><Smartphone size={19} /></span>} title="اسنپ" sub="۱۸ آبان · از تتر" end={<span>−<M m={41} /></span>} />
     </>
@@ -313,7 +337,8 @@ export function Profile() {
   const { go, unit, setUnit, state } = useApp();
   return (
     <>
-      <div className="col" style={{ alignItems: 'center', padding: '14px 0 6px' }}>
+      <NavBar title="پروفایل" />
+      <div className="col" style={{ alignItems: 'center', padding: '0 0 6px' }}>
         <span className="avatar" style={{ width: 84, height: 84, fontSize: 30, background: 'var(--gold)' }}>ع</span>
         <span className="h2 mt12">علی رضایی</span>
         <span className="small muted mt8 num">۰۹۱۲ ۳۴۵ ۶۷۸۹ · احراز کامل</span>

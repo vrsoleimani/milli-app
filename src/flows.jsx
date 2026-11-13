@@ -6,6 +6,7 @@ import {
 import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, Logo, M, Alt } from './ui.jsx';
 import { PRICE, contacts, bills } from './data.js';
 import { fa } from './format.js';
+import { SourceRow, sourceBalance } from './extra.jsx';
 
 // ورودی مبلغ با صفحه‌کلید؛ مقدار به واحد انتخابی
 function useAmount(initial = '') {
@@ -74,15 +75,18 @@ export function Buy({ preset = '' }) {
 }
 
 /* ───────────── ارسال میلی ───────────── */
-export function Send({ to = 'sara', preset = '' }) {
+const OCCASIONS = [['تولد', '🎂'], ['عیدی', '🌸'], ['عروسی', '💍'], ['تشکر', '🙏']];
+export function Send({ to = 'sara', preset = '', gift: giftInit = false }) {
   const { state, unit, act } = useApp();
-  const [sel, setSel] = useState(to);
+  const [sel, setSel] = useState(to || 'sara');
+  const [gift, setGift] = useState(giftInit);
+  const [occ, setOcc] = useState('تولد');
   const [raw, , onKey] = useAmount(preset);
   const c = contacts.find((x) => x.id === sel);
   const m = toMilliAmount(raw, unit);
   return (
     <>
-      <NavBar title="ارسال میلی" end={<UnitFlip />} />
+      <NavBar title={gift ? 'هدیه میلی' : 'ارسال میلی'} end={<UnitFlip />} />
       <div className="hscroll" style={{ gap: 14 }}>
         <button className="col gap8" style={{ alignItems: 'center', minWidth: 56 }}>
           <span className="avatar" style={{ background: 'var(--surface)', color: '#fff', width: 48, height: 48 }}><Search size={20} /></span>
@@ -97,9 +101,18 @@ export function Send({ to = 'sara', preset = '' }) {
       </div>
       <div className="small muted mt16" style={{ textAlign: 'center' }}>به {c.name}</div>
       <AmountDisplay raw={raw} unit={unit} />
-      <div className="field" style={{ padding: '10px 16px' }}><input placeholder="یادداشت (مثلاً سهم شام)" defaultValue={preset ? 'سهم شام دیشب' : ''} style={{ width: '100%' }} /></div>
+      <div className="field" style={{ padding: '10px 16px' }}><input placeholder={gift ? 'پیام تبریک' : 'یادداشت (مثلاً سهم شام)'} defaultValue={preset && !gift ? 'سهم شام دیشب' : ''} style={{ width: '100%' }} /></div>
+      <div className="between mt12" style={{ padding: '0 4px' }}>
+        <span className="row gap8 small"><Gift size={17} className="gold" />ارسال به شکل هدیه با کارت تبریک</span>
+        <Toggle on={gift} onClick={() => setGift(!gift)} />
+      </div>
+      {gift && (
+        <div className="chips mt12">
+          {OCCASIONS.map(([o, e]) => <button key={o} className={`pill ${occ === o ? 'active' : ''}`} onClick={() => setOcc(o)}>{e} {o}</button>)}
+        </div>
+      )}
       <Keypad onKey={onKey} />
-      <button className="btn primary mt12" disabled={!m || m > state.milli} onClick={() => act('send', { milli: m, to: c.name })}>{m > state.milli ? 'موجودی میلی کافی نیست' : 'ارسال'}</button>
+      <button className="btn primary mt12" disabled={!m || m > state.milli} onClick={() => act('send', { milli: m, to: c.name, gift: gift ? occ : null })}>{m > state.milli ? 'موجودی میلی کافی نیست' : gift ? 'ارسال هدیه' : 'ارسال'}</button>
     </>
   );
 }
@@ -184,8 +197,10 @@ export function FakeQR({ seed: sd = 7, size = 178, inset = 36, abs = true }) {
 
 /* ───────────── تأیید پرداخت ───────────── */
 export function Pay() {
-  const { act } = useApp();
+  const { act, state } = useApp();
   const m = 150;
+  const [src, setSrc] = useState(state.backing?.[0] || 'milli');
+  const ok = sourceBalance(state, src) >= m * PRICE;
   return (
     <>
       <NavBar title="تأیید پرداخت" />
@@ -196,13 +211,13 @@ export function Pay() {
       </div>
       <div className="amount-entry mt16"><div className="val num">{fa(m)}<small>میلی</small></div><div className="small muted mt8 num">≈ {fa(m * PRICE)} تومان</div></div>
       <div className="card mt16">
-        <div className="between small"><span className="muted">پرداخت از</span><span className="row gap8"><Diamond size={9} />میلی</span></div>
+        <SourceRow value={src} onChange={setSrc} />
         <div className="divider" />
         <div className="between small"><span className="muted">پاداش این خرید</span><span className="gold">+۳ میلی (۲٪)</span></div>
         <div className="divider" />
         <div className="between small"><span className="muted">کارمزد</span><span>رایگان</span></div>
       </div>
-      <button className="btn primary" style={{ marginTop: 150 }} onClick={() => act('pay', { milli: m, reward: 3, to: 'کافه لمیز' })}>پرداخت</button>
+      <button className="btn primary" style={{ marginTop: 110 }} disabled={!ok} onClick={() => act('pay', { milli: m, reward: 3, to: 'کافه لمیز', source: src })}>{ok ? 'پرداخت' : 'موجودی این منبع کافی نیست'}</button>
     </>
   );
 }
@@ -322,6 +337,8 @@ export function Convert() {
 /* ───────────── قلک تازه ───────────── */
 export function NewJar() {
   const { act } = useApp();
+  const [kind, setKind] = useState('solo');
+  const [members, setMembers] = useState(['sara', 'reza']);
   const icons = ['🏠', '✈️', '🚗', '🎓', '💍', '🎁', '📱', '🌱'];
   const [ic, setIc] = useState('🚗');
   const [freq, setFreq] = useState('هفتگی');
@@ -336,13 +353,27 @@ export function NewJar() {
       <div className="row mt16" style={{ justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
         {icons.map((x) => <button key={x} onClick={() => setIc(x)} style={{ fontSize: 22, width: 40, height: 40, borderRadius: 12, background: x === ic ? 'var(--gold-soft)' : 'var(--surface)', border: x === ic ? '1px solid var(--gold)' : 0 }}>{x}</button>)}
       </div>
-      <div className="field mt24"><label>نام قلک</label><input className="v" value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%' }} /></div>
+      <div className="segment mt16">{[['solo', 'شخصی'], ['group', 'گروهی']].map(([id, l]) => <button key={id} className={kind === id ? 'on' : ''} onClick={() => setKind(id)}>{l}</button>)}</div>
+      {kind === 'group' && (
+        <div className="hscroll mt16" style={{ gap: 14 }}>
+          {contacts.map((x) => {
+            const on = members.includes(x.id);
+            return (
+              <button key={x.id} className="col gap8" style={{ alignItems: 'center', minWidth: 52, opacity: on ? 1 : 0.4 }} onClick={() => setMembers((s) => (on ? s.filter((y) => y !== x.id) : [...s, x.id]))}>
+                <span style={{ borderRadius: '50%', boxShadow: on ? '0 0 0 2px #000, 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={44} /></span>
+                <span className="xs">{x.name.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <div className="field mt16"><label>نام قلک</label><input className="v" value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%' }} /></div>
       <div className="field mt12"><label>هدف</label><div className="v num">۱۲۰٬۰۰۰ میلی <span className="small muted">≈ {fa(120000 * PRICE)} تومان</span></div></div>
       <div className="field mt12 row"><Calendar size={18} className="muted" /><div className="grow"><label>تا</label><div className="v">اسفند ۱۴۰۶</div></div></div>
       <div className="h3 mt24">واریز خودکار</div>
       <div className="segment mt8">{['روزانه', 'هفتگی', 'ماهانه'].map((x) => <button key={x} className={freq === x ? 'on' : ''} onClick={() => setFreq(x)}>{x}</button>)}</div>
       <div className="small muted mt12" style={{ textAlign: 'center' }}>هر {freq === 'روزانه' ? 'روز' : freq === 'هفتگی' ? 'هفته' : 'ماه'} <span className="gold num">{freq === 'روزانه' ? '۲۷۳' : freq === 'هفتگی' ? '۱٬۹۱۰' : '۸٬۲۸۰'} میلی</span> تا رسیدن به هدف</div>
-      <button className="btn primary mt24" disabled={!name.trim()} onClick={() => act('jar', { name: name.trim(), icon: ic, freq, per })}>ساخت قلک</button>
+      <button className="btn primary mt24" disabled={!name.trim()} onClick={() => act('jar', { name: name.trim(), icon: ic, freq, per, group: kind === 'group' ? members.length : 0 })}>{kind === 'group' ? 'ساخت قلک گروهی' : 'ساخت قلک'}</button>
     </>
   );
 }

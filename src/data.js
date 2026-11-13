@@ -31,6 +31,7 @@ export const initialState = {
     { id: 'home', name: 'خرید خانه', icon: '🏠', saved: 52000, goal: 700000, auto: 'ماهانه ۲۰۰ میلی' },
     { id: 'trip', name: 'سفر نوروز', icon: '✈️', saved: 1800, goal: 4000, auto: 'هفتگی ۱۰۰ میلی' },
     { id: 'dowry', name: 'جهیزیه سارا', icon: '🎁', saved: 3100, goal: 50000, auto: 'هفتگی ۶۷ میلی' },
+    { id: 'north', name: 'سفر شمال', icon: '🏖️', saved: 2400, goal: 6000, auto: 'گروهی · ۴ نفر', group: true },
   ],
   tx: [
     { id: 1, title: 'کافه لمیز', sub: 'پرداخت QR · امروز ۹:۱۲', milli: -56, icon: 'qr' },
@@ -41,6 +42,11 @@ export const initialState = {
   ],
   credit: { limit: 80000000, used: 30000000, score: 'A', rate: 23 },
   backing: ['milli', 'usdt', 'rial', 'btc'],
+  roundup: { on: true, step: 10000, mult: 1, saved: 64, dest: 'milli' }, // خرده‌پول به میلی
+  salary: { on: true, milli: 20, jar: 10, fund: 0 }, // تقسیم حقوق (درصد)
+  protect: { face: true, places: true, delay: false, limit: 5000 }, // محافظت از دارایی
+  locks: [], // طلای مسدود در سود طلایی
+  splits: [{ id: 's1', title: 'تولد مریم', total: 2400, people: 3, paid: 2 }], // دنگ‌های باز
 };
 
 export const contacts = [
@@ -61,7 +67,7 @@ export const bills = [
 export const merchants = [
   { name: 'کافه لمیز', sub: 'کافه · ۳۰۰ متر', reward: '۲٪' },
   { name: 'افق کوروش', sub: 'فروشگاه · ۵۰۰ متر', reward: '۱٪' },
-  { name: 'گالری میلی', sub: 'طلا و جواهر · ۱٫۲ کیلومتر', reward: '۳٪' },
+  { name: 'میلی گالری', sub: 'طلا و جواهر · ۱٫۲ کیلومتر', reward: '۳٪' },
 ];
 
 export const backingLabels = {
