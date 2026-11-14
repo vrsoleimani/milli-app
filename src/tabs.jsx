@@ -295,7 +295,7 @@ export function Card() {
       <button className="bank-card" style={{ width: '100%', display: 'block', textAlign: 'right' }} onClick={() => go('cardManage')} aria-label="مدیریت کارت">
         <div className="between">
           <Logo size={36} />
-          <span className="pill active" style={{ height: 28, fontSize: 12 }}>{state.frozen ? 'مسدود موقت' : 'اعتباری'}</span>
+          {state.frozen && <span className="pill active" style={{ height: 28, fontSize: 12 }}>مسدود موقت</span>}
         </div>
         <div className="num" style={{ direction: 'ltr', fontSize: 22, letterSpacing: 2, marginTop: 52, textAlign: 'left' }}>5022 •••• •••• 9203</div>
         <div className="between mt12">
@@ -304,7 +304,26 @@ export function Card() {
         </div>
       </button>
 
-      <div className="card mt16">
+      {/* ترتیب خرج کارت: همان «پشتوانه پرداخت» لایه دوم، یک خط زیر کارت */}
+      <button className="card mt12" style={{ width: '100%', display: 'block', textAlign: 'right', padding: '12px 16px' }} onClick={() => go('backing')} aria-label="ترتیب خرج کارت">
+        <div className="between">
+          <span className="small muted">کارت به این ترتیب خرج می‌کند</span>
+          <span className="gold xs" style={{ fontWeight: 700 }}>تغییر ‹</span>
+        </div>
+        <div className="row mt8" style={{ gap: 6, flexWrap: 'wrap' }}>
+          {state.backing.map((id, i) => (
+            <React.Fragment key={id}>
+              {i > 0 && <span className="muted xs">‹</span>}
+              <span className="row" style={{ gap: 6, background: 'var(--track)', borderRadius: 999, padding: '5px 10px', fontSize: 13, fontWeight: 700 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 9, background: 'var(--gold)', color: '#000', fontSize: 11, display: 'grid', placeItems: 'center' }}>{fa(i + 1)}</span>
+                {backingLabels[id]?.name || id}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+      </button>
+
+      <div className="card mt12">
         <span className="small muted">اعتبار در دسترس</span>
         <div className="big-num num mt8" style={{ fontSize: 34 }}>{hidden ? '••••••' : fa(left)}<small>تومان</small></div>
         <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${(left / state.credit.limit) * 100}%` }} /></div>
