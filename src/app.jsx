@@ -31,7 +31,7 @@ const SCREENS = {
   pay: () => <Pay />,
   success: (p) => <Success {...p} />,
   bills: () => <Bills />,
-  convert: () => <Convert />,
+  convert: (p) => <Convert from={p.from} to={p.to} />,
   jar: () => <NewJar />,
   creditUp: () => <CreditUp />,
   wallet: () => <S.WalletPage />,

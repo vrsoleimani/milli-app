@@ -352,7 +352,7 @@ export function AssetPage({ p }) {
         <button className="btn primary" onClick={() => go('buyAsset', { id: a.id })}>خرید</button>
         <button className="btn ghost" onClick={() => go('buyAsset', { id: a.id, mode: 'sell' })}>فروش</button>
       </div>
-      <button className="btn ghost mt12" onClick={() => go('convert')}>تبدیل به میلی</button>
+      <button className="btn ghost mt12" onClick={() => go('convert', { from: a.id, to: 'milli' })}>تبدیل به میلی</button>
     </>
   );
 }
@@ -361,7 +361,7 @@ export function AssetPage({ p }) {
 export function Advisor() {
   const { go } = useApp();
   const tips = [
-    ['رمزارز بخشی از سبد توست', 'با تبدیل بخشی از سود رمزارز به میلی، سبدت متعادل‌تر می‌شود.', 'تبدیل به میلی', () => go('convert')],
+    ['رمزارز بخشی از سبد توست', 'با تبدیل بخشی از سود رمزارز به میلی، سبدت متعادل‌تر می‌شود.', 'تبدیل به میلی', () => go('convert', { from: 'btc', to: 'milli' })],
     ['پول کیف ریالی بیکار است', 'بخشی از آن را در صندوق درآمد ثابت بگذار تا هر روز سود بگیرد.', 'خرید صندوق', () => go('buyAsset', { id: 'income' })],
     ['قلک سفر نوروز عقب است', 'با ۱۰۰ میلی واریز بیشتر در هفته، به هدفت می‌رسی.', 'ساخت قلک تازه', () => go('jar')],
     ['سقف اعتبارت جا برای رشد دارد', 'با اضافه کردن نقره به پشتوانه، سقف بالاتری بگیر.', 'افزایش سقف', () => go('creditUp')],

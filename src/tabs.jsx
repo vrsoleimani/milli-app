@@ -146,7 +146,7 @@ export function Assets() {
 
       <div className="row mt16" style={{ gap: 10 }}>
         <button className="btn primary" style={{ height: 48 }} onClick={() => go('buyAsset')}><Plus size={19} />خرید</button>
-        <button className="btn ghost" style={{ height: 48 }} onClick={() => go('convert')}><ArrowLeftRight size={19} />تبدیل</button>
+        <button className="btn ghost" style={{ height: 48 }} onClick={() => go('convert', { from: 'milli' })}><ArrowLeftRight size={19} />تبدیل</button>
       </div>
 
       <SectionTitle title="میلی" />

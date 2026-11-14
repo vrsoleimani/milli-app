@@ -100,11 +100,20 @@ function apply(s, kind, p) {
       };
     }
     case 'convert': {
-      const a = s.assets.find((x) => x.id === p.from);
-      const m = round(p.toman / PRICE);
+      const name = (id) => srcName(s, id);
+      const t = Math.round(p.toman), m = round(p.milli ?? t / PRICE);
+      const d = debit(s, p.from, p.milli ?? t / PRICE);
+      if (!d || !t) return NO;
+      let n = d;
+      if (p.to === 'milli') n = { ...n, milli: round(n.milli + m) };
+      else if (p.to === 'rial') n = { ...n, rial: n.rial + t };
+      else n = { ...n, assets: n.assets.map((x) => (x.id === p.to ? { ...x, value: x.value + t } : x)) };
+      const sign = p.from === 'milli' ? -m : m;
       return {
-        s: addTx({ ...s, milli: round(s.milli + m), assets: s.assets.map((x) => (x.id === p.from ? { ...x, value: x.value - p.toman } : x)) }, txOf(`تبدیل ${a.name} به میلی`, 'الان', m, 'buy')),
-        ok: { title: 'تبدیل انجام شد', amount: m, sub: `از ${a.name}` },
+        s: addTx(n, txOf(`تبدیل ${name(p.from)} به ${name(p.to)}`, 'تبدیل · الان', sign, p.from === 'milli' ? 'sell' : 'buy')),
+        ok: p.to === 'milli'
+          ? { title: 'تبدیل انجام شد', amount: m, sub: `از ${name(p.from)}` }
+          : { title: 'تبدیل انجام شد', toman: t, sub: `از ${name(p.from)} به ${name(p.to)}` },
       };
     }
     case 'jar':
