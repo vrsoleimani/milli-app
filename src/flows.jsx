@@ -3,8 +3,8 @@ import {
   Wallet, Check, Search, Share2, Zap, Flame, Droplet, Smartphone, ArrowUpDown, Calendar, X, Gift, ChevronDown, Store,
   Info, Users,
 } from 'lucide-react';
-import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, M } from './ui.jsx';
-import { PRICE, contacts, bills, UNITS, initialState, FEES, MILLI_MIN_FEE } from './data.js';
+import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, M, T, assetSub } from './ui.jsx';
+import { PRICE, contacts, bills, UNITS, fullAssets, FEES, MILLI_MIN_FEE } from './data.js';
 import { fa } from './format.js';
 import { SourceRow, sourceBalance } from './extra.jsx';
 
@@ -241,7 +241,7 @@ export function Bills() {
               const Ic = billIcon[b.icon];
               return (
                 <Row key={b.id} start={<span className="badge-ic"><Ic size={19} /></span>} title={b.name} sub={b.sub}
-                  end={<M t={b.toman} />} endSub={<span className="xs muted">مهلت ۵ روز</span>} />
+                  end={<T t={b.toman} />} endSub={<span className="xs muted">مهلت ۵ روز</span>} />
               );
             })}
           </div>
@@ -250,15 +250,15 @@ export function Bills() {
             <Toggle on={auto} onClick={() => setAuto(!auto)} />
           </div>
           <div className="card mt16">
-            <div className="between"><span className="muted small">جمع چهار قبض</span><span className="h2"><M t={total} /></span></div>
-            <div className="between mt8 xs muted"><span>پرداخت از میلی</span><span className="gold">۱٪ پاداش</span></div>
+            <div className="between"><span className="muted small">جمع چهار قبض</span><span className="h2"><T t={total} /></span></div>
+            <div className="between mt8 xs muted"><span className="num">پرداخت از میلی · ≈ {fa(total / PRICE, 1)} میلی</span><span className="gold">۱٪ پاداش</span></div>
           </div>
           <button className="btn primary mt24" onClick={() => act('bills', { milli: total / PRICE })}>پرداخت همه</button>
         </>
       ) : (
         <div className="card mt16" style={{ padding: '4px 18px' }}>
           {opts.map(([t, n]) => (
-            <Row key={n} start={<span className="badge-ic"><Smartphone size={19} /></span>} title={n} sub="۰۹۱۲ ۳۴۵ ۶۷۸۹" end={<M t={t} />} chevron
+            <Row key={n} start={<span className="badge-ic"><Smartphone size={19} /></span>} title={n} sub="۰۹۱۲ ۳۴۵ ۶۷۸۹" end={<T t={t} />} chevron
               onClick={() => go('confirm', { title: n, sub: n, milli: t / PRICE, rate: 0.01, icon: 'bill', txSub: 'شارژ و اینترنت' })} />
           ))}
         </div>
@@ -281,7 +281,7 @@ function unitOf(id) {
   if (id === 'milli') return { u: 'میلی', price: PRICE, dec: 2 };
   const x = UNITS[id];
   if (!x) return { u: 'تومان', price: 1, dec: 0 };
-  const a = initialState.assets.find((y) => y.id === id);
+  const a = fullAssets.find((y) => y.id === id);
   return { u: x.u, price: a.value / x.qty, dec: x.dec };
 }
 const LATIN = /^[A-Z]+$/;
@@ -318,16 +318,19 @@ function ConvSide({ label, id, other, onPick, value, unitLabel, sub, gold, red }
       </div>
       {open && (
         <div className="source-list conv-menu">
-          {opts.map((o) => {
+          {opts.map((o, oi) => {
             const off = o.id === other;
             return (
-              <button key={o.id} disabled={off} className={`source-opt ${o.id === id ? 'on' : ''}`} style={off ? { opacity: 0.35 } : null}
+              <React.Fragment key={o.id}>
+              {oi === 2 && <div className="xs faint" style={{ padding: '8px 12px 2px', textAlign: 'right' }}>سایر دارایی‌ها</div>}
+              <button disabled={off} className={`source-opt ${o.id === id ? 'on' : ''}`} style={off ? { opacity: 0.35 } : null}
                 onClick={() => { onPick(o.id); setOpen(false); }}>
                 <Diamond size={9} color={o.color} />
                 <span className="grow col" style={{ textAlign: 'right', gap: 2 }}><span>{o.name}</span><span className="xs muted">{o.group}</span></span>
                 <span className="muted num">{bal(o.id)}</span>
                 {o.id === id && <Check size={15} className="gold" />}
               </button>
+              </React.Fragment>
             );
           })}
         </div>
@@ -347,9 +350,11 @@ export function convFee(from, to, n) {
 
 export function Convert({ from: fromInit, to: toInit }) {
   const { state, act, hidden } = useApp();
-  const f0 = fromInit || 'btc';
+  // پیش‌فرض: یک طرف تبدیل میلی است؛ کاربر می‌تواند هر دو طرف را عوض کند
+  const own0 = state.assets.find((a) => a.value > 0.5 && !a.peg)?.id;
+  const f0 = fromInit || own0 || 'milli';
   const [from, setFrom] = useState(f0);
-  const [to, setTo] = useState(toInit || (f0 === 'milli' ? 'silver' : 'milli'));
+  const [to, setTo] = useState(toInit || (f0 === 'milli' ? own0 || 'usdt' : 'milli'));
   const [raw, setRaw, onKey] = useAmount('');
   const [spin, setSpin] = useState(0);
   const [feeInfo, setFeeInfo] = useState(false);
@@ -491,7 +496,7 @@ export function NewJar() {
 export function CreditUp() {
   const { state, act } = useApp();
   const [v, setV] = useState(120);
-  const [on, setOn] = useState({ milli: true, goldfund: true, income: true, silver: false, usdt: false });
+  const [on, setOn] = useState({ milli: true, millix: true });
   const tg = (k) => setOn((o) => ({ ...o, [k]: !o[k] }));
   return (
     <>
@@ -507,10 +512,9 @@ export function CreditUp() {
       <div className="h3 mt24">پشتوانه اعتبار</div>
       <div className="card mt8" style={{ padding: '4px 18px' }}>
         <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub={`${fa(state.milli)} میلی`} end={<Toggle on={on.milli} onClick={() => tg('milli')} />} />
-        <Row start={<AssetIcon color="#2a49e8" />} title="صندوق طلای میلی" sub="۴۸٬۰۰۰ واحد" end={<Toggle on={on.goldfund} onClick={() => tg('goldfund')} />} />
-        <Row start={<AssetIcon color="#5470ff" />} title="صندوق درآمد ثابت" sub="سود روزشمار" end={<Toggle on={on.income} onClick={() => tg('income')} />} />
-        <Row start={<AssetIcon color="#c9ced6" />} title="نقره" sub="۴۱۰ گرم" end={<Toggle on={on.silver} onClick={() => tg('silver')} />} />
-        <Row start={<AssetIcon color="#26a17b" />} title="تتر" sub="۱۲۶ USDT" end={<Toggle on={on.usdt} onClick={() => tg('usdt')} />} />
+        {state.assets.filter((a) => a.value > 0.5).map((a) => (
+          <Row key={a.id} start={<AssetIcon color={a.color} />} title={a.name} sub={<bdi>{assetSub(a)}</bdi>} end={<Toggle on={!!on[a.id]} onClick={() => tg(a.id)} />} />
+        ))}
       </div>
       <div className="card soft mt16">
         <div className="between small"><span className="muted">رتبه اعتباری</span><span className="gold">A</span></div>

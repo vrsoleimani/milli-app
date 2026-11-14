@@ -6,10 +6,9 @@ import {
   HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards, LogOut, ChevronDown, Moon,
 } from 'lucide-react';
 import {
-  useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
-  Row, Logo, Avatar, Toggle, TabHead, AskBar, NavBar,
+  useApp, TopBar, ViewToggles, BigAmount, M, T, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
+  Row, Logo, Avatar, Toggle, TabHead, AskBar, NavBar, assetSub, ownAssets,
 } from './ui.jsx';
-import { salaryLine } from './extra.jsx';
 import { PnlLink } from './pnl.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa } from './format.js';
@@ -21,6 +20,7 @@ export function Home() {
   const [tip, setTip] = useState(true);
   const [txOpen, setTxOpen] = useState(false);
   const next = state.installments?.[0];
+  const creditLeft = state.credit.limit - state.credit.used;
   return (
     <>
       <TopBar />
@@ -56,7 +56,7 @@ export function Home() {
           <Sparkles size={20} className="gold" />
           <button className="grow col gap4" style={{ textAlign: 'right' }} onClick={() => go('payInstallment', { id: next.id })}>
             <span className="h3">قسط ۲۵ {MONTHS[next.k % 12]} نزدیک است</span>
-            <span className="xs muted">با یک لمس از میلی بپرداز · <M t={next.monthly} /></span>
+            <span className="xs muted">با یک لمس از میلی بپرداز · <T t={next.monthly} /></span>
           </button>
           <button onClick={() => setTip(false)} aria-label="بستن" className="faint"><X size={17} /></button>
         </div>
@@ -64,32 +64,30 @@ export function Home() {
 
       <button className="card mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('wallet')}>
         <span className="badge-ic"><Wallet size={20} /></span>
+        <span className="grow h3">کیف پول ریالی</span>
+        <span className="h3 num"><T t={state.rial} /></span>
+        <ChevronLeft size={18} className="faint" />
+      </button>
+
+      {/* اعتبار با عدد خود کاربر، به‌جای بنر تبلیغی وام و خرید قسطی */}
+      <button className="card mt12 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('tab:card')}>
+        <span className="badge-ic"><HandCoins size={20} /></span>
         <span className="grow col gap4">
-          <span className="h3">کیف پول ریالی</span>
-          <span className="xs muted">تقسیم حقوق: {salaryLine(state.salary)}</span>
+          <span className="h3">اعتبار در دسترس</span>
+          <span className="xs muted"><T t={creditLeft} /> · وام یا خرید قسطی</span>
         </span>
-        <span className="col" style={{ alignItems: 'flex-end' }}>
-          <span className="h3 num"><Rial t={state.rial} /></span>
+        <ChevronLeft size={18} className="faint" />
+      </button>
+      <button className="card gold mt12 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('goldyield')}>
+        <TrendingUp size={22} className="gold" />
+        <span className="grow col gap4">
+          <span className="h3">سود طلایی</span>
+          <span className="xs muted">ماهانه ۱٪ سود، به میلی</span>
         </span>
         <ChevronLeft size={18} className="faint" />
       </button>
 
-      <SectionTitle title="برای تو" />
-      <div className="hscroll">
-        {[
-          ['loan', Landmark, 'دریافت وام', 'با پشتوانه دارایی‌هایت، در چند دقیقه', {}],
-          ['credit', Gem, 'خرید قسطی طلا', 'امروز بخر، تا ۱۲ قسط بپرداز', { merchant: 'میلی گالری' }],
-          ['goldyield', TrendingUp, 'سود طلایی', 'ماهانه ۱٪ سود، به میلی', {}],
-        ].map(([id, Ic, t, d, p]) => (
-          <button key={id} className="jar promo" onClick={() => go(id, p)}>
-            <Ic size={24} className="gold" />
-            <div className="h3 mt8">{t}</div>
-            <div className="xs muted mt8">{d}</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="card tx-box mt24">
+      <div className="card tx-box mt12">
         <button className="between" style={{ width: '100%' }} onClick={() => setTxOpen(!txOpen)} aria-expanded={txOpen}>
           <span className="row gap8"><span className="badge-ic sm"><Receipt size={17} /></span><span className="h3">تراکنش‌های اخیر</span></span>
           <ChevronDown size={19} className="muted" style={{ transform: txOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
@@ -108,12 +106,6 @@ export function Home() {
   );
 }
 
-// کیف پول ریالی همیشه به تومان نشان داده می‌شود
-function Rial({ t }) {
-  const { hidden } = useApp();
-  return <>{hidden ? '••••••' : `${fa(t)} تومان`}</>;
-}
-
 function Sparkline() {
   return (
     <svg width="44" height="18" viewBox="0 0 44 18">
@@ -122,19 +114,32 @@ function Sparkline() {
   );
 }
 
-/* ───────────── تب دارایی‌ها ───────────── */
-const GROUPS = ['همه', 'فلزات', 'رمزارز', 'سهام', 'صندوق'];
+/* ───────────── تب دارایی‌ها ─────────────
+   صفحه با دارایی کاربر بزرگ می‌شود: فقط میلی ← چند دارایی (تا سه) ← سبد پر (نوار ترکیب و فیلتر گروه) */
+const GROUPS = ['فلزات', 'رمزارز', 'سهام', 'صندوق'];
+const GROUP_LABEL = { صندوق: ['صندوق‌ها', '#2a49e8'], رمزارز: ['رمزارز', '#f7931a'], سهام: ['سهام', '#3b82f6'], فلزات: ['سکه و فلزات', '#c9ced6'] };
 
 export function Assets() {
   const { state, go, hidden } = useApp();
   const [g, setG] = useState('همه');
   const locked = (state.locks || []).reduce((s, l) => s + l.milli, 0);
-  const milliToman = (state.milli + locked) * PRICE;
+  const milliAll = state.milli + locked;
+  const milliToman = milliAll * PRICE;
   const jarsToman = state.jars.reduce((s, j) => s + j.saved, 0) * PRICE; // قلک‌ها هم جزو مجموع دارایی است
-  const total = milliToman + jarsToman + state.assets.reduce((s, a) => s + a.value, 0);
-  const parts = [{ name: 'میلی', value: milliToman, color: '#fbb918' }, { name: 'قلک‌ها', value: jarsToman, color: '#e0a100' }, ...state.assets];
-  const gsum = (gr) => state.assets.filter((a) => a.group === gr).reduce((s, a) => s + a.value, 0);
-  const shown = state.assets.filter((a) => g === 'همه' || a.group === g);
+  const own = ownAssets(state);
+  const otherToman = own.reduce((s, a) => s + a.value, 0);
+  const total = milliToman + jarsToman + otherToman;
+  const mode = own.length === 0 ? 'gold' : own.length <= 3 ? 'few' : 'full';
+  const groups = GROUPS.filter((x) => own.some((a) => a.group === x));
+  const gsum = (gr) => own.filter((a) => a.group === gr).reduce((s, a) => s + a.value, 0);
+  const shown = own.filter((a) => mode !== 'full' || g === 'همه' || a.group === g);
+  const share = (v) => fa(Math.round((v / total) * 100));
+  const legend = mode === 'full'
+    ? [['میلی', '#fbb918', milliToman], ['قلک‌ها', '#e0a100', jarsToman], ...groups.map((x) => [GROUP_LABEL[x][0], GROUP_LABEL[x][1], gsum(x)])]
+    : [['میلی و قلک‌ها', '#fbb918', milliToman + jarsToman], ['سایر دارایی‌ها', '#8c8cf0', otherToman]];
+  const bar = mode === 'full'
+    ? [['میلی', milliToman, '#fbb918'], ['قلک‌ها', jarsToman, '#e0a100'], ...own.map((a) => [a.id, a.value, a.color])]
+    : legend.map(([n, c, v]) => [n, v, c]);
   return (
     <>
       <TabHead title="دارایی‌ها" />
@@ -142,33 +147,39 @@ export function Assets() {
         <span className="small muted">مجموع دارایی</span>
         <div className="mt8"><BigAmount toman={total} /></div>
         <div className="mt8"><span className="small muted"><Alt t={total} /></span></div>
-        <div className="stack-bar mt16">
-          {parts.map((p) => <i key={p.name} style={{ flex: p.value, background: p.color }} />)}
-        </div>
-        <div className="row mt12" style={{ flexWrap: 'wrap', gap: '6px 14px' }}>
-          {[['میلی', '#fbb918', milliToman], ['قلک‌ها', '#e0a100', jarsToman], ['صندوق‌ها', '#2a49e8', gsum('صندوق')], ['رمزارز', '#f7931a', gsum('رمزارز')], ['سهام', '#3b82f6', gsum('سهام')], ['سکه و فلزات', '#c9ced6', gsum('فلزات')]].map(([n, c, v]) => (
-            <span key={n} className="row xs" style={{ gap: 6 }}><Diamond color={c} size={8} />{n} {fa(Math.round((v / total) * 100))}٪</span>
-          ))}
-        </div>
+        {mode !== 'gold' && (
+          <>
+            <div className="stack-bar mt16">
+              {bar.map(([n, v, c]) => <i key={n} style={{ flex: v, background: c }} />)}
+            </div>
+            <div className="row mt12" style={{ flexWrap: 'wrap', gap: '6px 14px' }}>
+              {legend.map(([n, c, v]) => (
+                <span key={n} className="row xs" style={{ gap: 6 }}><Diamond color={c} size={8} />{n} {share(v)}٪</span>
+              ))}
+            </div>
+          </>
+        )}
         <div className="divider" />
         <PnlLink />
       </div>
 
-      <div className="row mt16" style={{ gap: 10 }}>
-        <button className="btn primary" style={{ height: 48 }} onClick={() => go('buyAsset')}><Plus size={19} />خرید</button>
-        <button className="btn ghost" style={{ height: 48 }} onClick={() => go('convert', { from: 'milli' })}><ArrowLeftRight size={19} />تبدیل</button>
-      </div>
+      {mode !== 'gold' && (
+        <div className="row mt16" style={{ gap: 10 }}>
+          <button className="btn primary" style={{ height: 48 }} onClick={() => go('buyAsset')}><Plus size={19} />خرید</button>
+          <button className="btn ghost" style={{ height: 48 }} onClick={() => go('convert', { from: 'milli' })}><ArrowLeftRight size={19} />تبدیل</button>
+        </div>
+      )}
 
       <SectionTitle title="میلی" />
       <button className="card soft row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('tab:home')}>
         <span className="badge-ic" style={{ background: 'var(--bg)' }}><Diamond /></span>
         <span className="grow col gap4">
-          <span className="h3">طلا</span>
-          <span className="small muted num">{hidden ? '••••' : `${fa((state.milli + locked) / 1000, 2)} گرم`}</span>
+          <span className="h3">میلی</span>
+          <span className="small muted">طلای ۱۸ عیار</span>
         </span>
         <span className="col gap4" style={{ alignItems: 'flex-end' }}>
-          <span className="h3"><M t={milliToman} /></span>
-          <Change v={3.1} />
+          <span className="h3 num">{hidden ? '••••••' : `${fa(milliAll)} میلی`}</span>
+          <span className="small muted num">{hidden ? '' : `≈ ${fa(Math.round(milliToman))} تومان`}</span>
         </span>
       </button>
       {locked > 0 && (
@@ -195,24 +206,30 @@ export function Assets() {
       </div>
 
       <SectionTitle title="سایر دارایی‌ها" />
-      <div className="hscroll" style={{ gap: 8 }}>
-        {GROUPS.map((x) => <button key={x} className={`pill ${g === x ? 'active' : ''}`} onClick={() => setG(x)}>{x}</button>)}
-      </div>
-      <div className="mt8">
-        {shown.map((a) => (
-          <Row key={a.id} start={<AssetIcon color={a.color} />} title={a.name} sub={a.sub}
-            end={<M t={a.value} />} endSub={<Change v={a.change} />} onClick={() => go('asset', { id: a.id })} />
-        ))}
-      </div>
-
-      <button className="card gold mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('advisor')}>
-        <span className="badge-ic" style={{ background: 'rgba(251,185,24,.18)' }}><Sparkles size={20} className="gold" /></span>
-        <span className="grow col gap4">
-          <span className="h3">مشاور هوشمند میلی</span>
-          <span className="xs muted">راهنمایی به سمت بهترین سرمایه‌گذاری‌ها</span>
-        </span>
-        <ChevronLeft size={18} className="faint" />
-      </button>
+      {mode === 'gold' ? (
+        <button className="card row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('buyAsset')}>
+          <span className="badge-ic"><Coins size={20} /></span>
+          <span className="grow col gap4">
+            <span className="h3">سکه، دلار، بیت‌کوین و بیشتر</span>
+            <span className="xs muted">هر وقت خواستی، با تومان یا میلی بخر</span>
+          </span>
+          <ChevronLeft size={18} className="faint" />
+        </button>
+      ) : (
+        <>
+          {mode === 'full' && (
+            <div className="hscroll" style={{ gap: 8 }}>
+              {['همه', ...groups].map((x) => <button key={x} className={`pill ${g === x ? 'active' : ''}`} onClick={() => setG(x)}>{x}</button>)}
+            </div>
+          )}
+          <div className={mode === 'full' ? 'mt8' : ''}>
+            {shown.map((a) => (
+              <Row key={a.id} start={<AssetIcon color={a.color} />} title={a.name} sub={<bdi>{assetSub(a)}</bdi>}
+                end={<M t={a.value} />} endSub={<Change v={a.change} />} onClick={() => go('asset', { id: a.id })} />
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -266,15 +283,16 @@ export function Services() {
   );
 }
 
-/* ───────────── تب کارت ───────────── */
+/* ───────────── تب کارت و اعتبار ─────────────
+   صفحه اول فقط کارت، اعتبار در دسترس، دو کار اصلی و قسط بعدی؛ بقیه یک لایه عقب‌تر است */
 export function Card() {
-  const { state, go } = useApp();
+  const { state, go, hidden } = useApp();
   const left = state.credit.limit - state.credit.used;
   const next = state.installments[0];
   return (
     <>
       <TabHead title="کارت و اعتبار" />
-      <div className="bank-card">
+      <button className="bank-card" style={{ width: '100%', display: 'block', textAlign: 'right' }} onClick={() => go('cardManage')} aria-label="مدیریت کارت">
         <div className="between">
           <Logo size={36} />
           <span className="pill active" style={{ height: 28, fontSize: 12 }}>{state.frozen ? 'مسدود موقت' : 'اعتباری'}</span>
@@ -284,30 +302,17 @@ export function Card() {
           <span style={{ fontWeight: 600 }}>علی رضایی</span>
           <span className="small" style={{ direction: 'ltr', color: '#ddd' }}>08/29</span>
         </div>
-      </div>
-
-      <div className="row mt16 card soft" style={{ padding: 14 }}>
-        <Gift size={20} className="gold" />
-        <span className="grow small">۱٪ هر خرید با کارت، میلی به حسابت برمی‌گردد</span>
-        <span className="small gold"><M m={state.rewardsMonth} /></span>
-      </div>
-
-      <button className="row mt8 card soft" style={{ padding: 14, width: '100%', textAlign: 'right' }} onClick={() => go('roundup')}>
-        <PiggyBank size={20} className="gold" />
-        <span className="grow small">خرده‌پول هر خرید، میلی می‌شود{state.roundup.on ? '' : ' (خاموش)'}</span>
-        <span className="small gold"><M m={state.roundup.saved} /></span>
-        <ChevronLeft size={16} className="faint" />
       </button>
 
-      <SectionTitle title="اعتبار شما" link="افزایش سقف" onLink={() => go('creditUp')} />
-      <div className="card">
-        <div className="between">
-          <span className="small muted">اعتبار باقی‌مانده</span>
-          <span className="pill" style={{ height: 26, fontSize: 12 }}>رتبه {state.credit.score}</span>
-        </div>
-        <div className="h1 mt8"><M t={left} /></div>
+      <div className="card mt16">
+        <span className="small muted">اعتبار در دسترس</span>
+        <div className="big-num num mt8" style={{ fontSize: 34 }}>{hidden ? '••••••' : fa(left)}<small>تومان</small></div>
         <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${(left / state.credit.limit) * 100}%` }} /></div>
-        <div className="between mt8 xs muted"><span>سقف <M t={state.credit.limit} /></span><span>پشتوانه: سبد دارایی شما</span></div>
+        <div className="xs muted mt8">به پشتوانه دارایی‌هایت · سقف <T t={state.credit.limit} /></div>
+        <div className="row mt16" style={{ gap: 10 }}>
+          <button className="btn primary" style={{ height: 48 }} onClick={() => go('credit')}><ShoppingBag size={19} />خرید قسطی</button>
+          <button className="btn ghost" style={{ height: 48 }} onClick={() => go('loan')}><Landmark size={19} />وام</button>
+        </div>
       </div>
 
       {next ? (
@@ -315,7 +320,7 @@ export function Card() {
           <span className="badge-ic" style={{ background: 'var(--bg)' }}><CalendarClock size={20} /></span>
           <span className="grow col gap4">
             <span className="h3">قسط بعدی · ۲۵ {MONTHS[next.k % 12]}</span>
-            <span className="small muted"><M t={next.monthly} /></span>
+            <span className="small muted"><T t={next.monthly} /></span>
           </span>
           <button className="btn primary small" onClick={() => go('payInstallment', { id: next.id })}>پرداخت</button>
         </div>
@@ -323,22 +328,11 @@ export function Card() {
         <div className="card soft mt12 row"><CalendarClock size={20} className="gold" /><span className="grow small">قسط باز نداری</span></div>
       )}
 
-      <div className="grid4 mt16" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
-        {[['credit', 'خرید اعتباری', ShoppingBag], ['loan', 'وام', Landmark], ['installments', 'اقساط', CalendarClock], ['score', 'امتیاز اعتباری', Gauge]].map(([id, l, Ic]) => (
-          <button key={id} className="tile" onClick={() => go(id)}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
-        ))}
+      <div className="card mt12" style={{ padding: '4px 18px' }}>
+        <Row start={<span className="badge-ic"><Settings size={19} /></span>} title="مدیریت کارت" sub="رمز، مسدودسازی، پشتوانه پرداخت" chevron onClick={() => go('cardManage')} />
+        <Row start={<span className="badge-ic"><Gauge size={19} /></span>} title="اعتبار من" sub="اقساط، افزایش سقف، امتیاز" chevron onClick={() => go('creditMore')} />
+        <Row start={<span className="badge-ic"><Gift size={19} /></span>} title="پاداش و خرده‌پول" end={<span className="gold small"><M m={state.rewardsMonth + state.roundup.saved} /></span>} chevron onClick={() => go('cardPerks')} />
       </div>
-
-      <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
-        {[['رمز دوم', KeyRound, 'cardAction', 'pin'], ['شماره کارت', Hash, 'cardAction', 'number'], [state.frozen ? 'رفع مسدودی' : 'مسدود موقت', Snowflake, 'cardAction', 'freeze'], ['پشتوانه', WalletCards, 'backing'], ['تنظیمات', Settings, 'cardAction', 'settings']].map(([l, Ic, to, kind]) => (
-          <button key={l} className="tile" style={{ padding: '12px 2px', fontSize: 11 }} onClick={() => go(to, { kind })}><span className="ic"><Ic size={21} strokeWidth={1.7} /></span>{l}</button>
-        ))}
-      </div>
-
-      <SectionTitle title="خریدهای اخیر" />
-      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="دیجی‌کالا" sub="امروز · از میلی" end={<span>−<M m={94} /></span>} endSub={<span className="gold xs">+۰٫۹ پاداش · +۰٫۳ خرده‌پول</span>} />
-      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="افق کوروش" sub="دیروز · از میلی" end={<span>−<M m={26} /></span>} endSub={<span className="gold xs">+۰٫۳ میلی پاداش</span>} />
-      <Row start={<span className="badge-ic"><Smartphone size={19} /></span>} title="اسنپ" sub="۱۸ آبان · از تتر" end={<span>−<M m={12} /></span>} />
     </>
   );
 }

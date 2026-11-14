@@ -5,8 +5,9 @@ import {
   TrendingUp, Wallet, Store, Search, ScanFace, Timer, ChevronLeft, Briefcase, User, CalendarClock, ShoppingBag, Sparkles, Coins, Eye, EyeOff, Heart,
 } from 'lucide-react';
 import {
-  useApp, NavBar, Diamond, AssetIcon, Toggle, Row, M, Alt, Change, SectionTitle, TxIcon, Keypad, Avatar, BigAmount, Logo,
+  useApp, NavBar, Diamond, AssetIcon, Toggle, Row, M, T, Alt, Change, SectionTitle, TxIcon, Keypad, Avatar, BigAmount, Logo, assetSub, ownAssets,
 } from './ui.jsx';
+import { MarketToday } from './simple.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa, money, milliIn } from './format.js';
 import { monthly, MONTHS } from './store.jsx';
@@ -71,7 +72,7 @@ const Sub = ({ children }) => <div className="small muted mt8" style={{ lineHeig
 
 /* ───────────── تأیید پرداخت عمومی ───────────── */
 export function Confirm({ p }) {
-  const { state, act, go } = useApp();
+  const { state, act, go, hidden } = useApp();
   const [src, setSrc] = useState('milli');
   const ok = sourceBalance(state, src) >= p.milli * PRICE;
   const reward = Math.round(p.milli * (p.rate ?? 0.01) * 10) / 10;
@@ -84,8 +85,18 @@ export function Confirm({ p }) {
         {p.sub && <span className="small muted mt8" style={{ textAlign: 'center' }}>{p.sub}</span>}
       </div>
       <div className="mt24" style={{ textAlign: 'center' }}>
-        <BigAmount milli={p.milli} />
-        <div className="small muted mt8"><Alt m={p.milli} /></div>
+        {p.tomanFirst ? (
+          <>
+            {/* بدهی تومانی به تومان نشان داده می‌شود؛ میلی فقط مقدار برداشت است */}
+            <div className="big-num num">{hidden ? '••••••' : fa(p.toman)}<small>تومان</small></div>
+            <div className="small muted mt8 num">{hidden ? '' : `≈ ${fa(p.milli, 1)} میلی از موجودی‌ات کم می‌شود`}</div>
+          </>
+        ) : (
+          <>
+            <BigAmount milli={p.milli} />
+            <div className="small muted mt8"><Alt m={p.milli} /></div>
+          </>
+        )}
       </div>
       <div className="card mt24">
         <SourceRow value={src} onChange={setSrc} />
@@ -156,9 +167,9 @@ export function WalletPage() {
         <ChevronLeft size={18} className="faint" />
       </button>
       <SectionTitle title="گردش اخیر" />
-      <Row start={<span className="badge-ic"><ArrowDownLeft size={19} className="up" /></span>} title="واریز حقوق" sub="۱ آذر" end={<span className="up"><M t={32000000} /></span>} />
-      <Row start={<span className="badge-ic"><Diamond /></span>} title="خرید خودکار میلی" sub="۱ آذر · ۲۰٪ حقوق" end={<span>−<M t={6400000} /></span>} />
-      <Row start={<span className="badge-ic"><ArrowUpRight size={19} /></span>} title="برداشت به حساب بانکی" sub="۲۸ آبان" end={<span>−<M t={5000000} /></span>} />
+      <Row start={<span className="badge-ic"><ArrowDownLeft size={19} className="up" /></span>} title="واریز حقوق" sub="۱ آذر" end={<span className="up"><T t={32000000} /></span>} />
+      <Row start={<span className="badge-ic"><Diamond /></span>} title="خرید خودکار میلی" sub="۱ آذر · ۲۰٪ حقوق" end={<span>−<T t={6400000} /></span>} />
+      <Row start={<span className="badge-ic"><ArrowUpRight size={19} /></span>} title="برداشت به حساب بانکی" sub="۲۸ آبان" end={<span>−<T t={5000000} /></span>} />
     </>
   );
 }
@@ -313,9 +324,10 @@ export function BuyAsset({ p }) {
       <>
         <NavBar title="خرید دارایی" />
         <Sub>دارایی مورد نظرت را انتخاب کن. خرید از کیف پول ریالی انجام می‌شود.</Sub>
+        <MarketToday assets={state.assets} onPick={setSel} />
         <div className="card mt16" style={{ padding: '4px 18px' }}>
-          <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub="طلای دیجیتال" chevron onClick={() => go('buy')} />
-          {state.assets.map((x) => <Row key={x.id} start={<AssetIcon color={x.color} />} title={x.name} sub={x.sub} chevron onClick={() => setSel(x.id)} />)}
+          <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub="طلای ۱۸ عیار" chevron onClick={() => go('buy')} />
+          {state.assets.map((x) => <Row key={x.id} start={<AssetIcon color={x.color} />} title={x.name} sub={<bdi>{assetSub(x)}</bdi>} chevron onClick={() => setSel(x.id)} />)}
         </div>
       </>
     );
@@ -344,7 +356,7 @@ export function AssetPage({ p }) {
     <>
       <NavBar title={a.name} />
       <div className="card">
-        <div className="row gap8"><Diamond color={a.color} size={11} /><span className="small muted">{a.sub}</span>{a.peg && <span className="pill sm gold" style={{ marginInlineStart: 'auto' }}>هر MLX = ۱ میلی</span>}</div>
+        <div className="row gap8"><Diamond color={a.color} size={11} /><span className="small muted"><bdi>{assetSub(a)}</bdi></span>{a.peg && <span className="pill sm gold" style={{ marginInlineStart: 'auto' }}>هر MLX = ۱ میلی</span>}</div>
         <div className="big-num num mt8"><M t={a.value} /></div>
         <RangeChart base={a.value} seed={seed} color={a.color} />
       </div>
@@ -352,31 +364,9 @@ export function AssetPage({ p }) {
         <button className="btn primary" onClick={() => go('buyAsset', { id: a.id })}>خرید</button>
         <button className="btn ghost" onClick={() => go('buyAsset', { id: a.id, mode: 'sell' })}>فروش</button>
       </div>
-      <button className="btn ghost mt12" onClick={() => go('convert', { from: a.id, to: 'milli' })}>تبدیل به میلی{a.peg ? ' · یک‌به‌یک' : ''}</button>
-    </>
-  );
-}
-
-/* ───────────── مشاور هوشمند ───────────── */
-export function Advisor() {
-  const { go } = useApp();
-  const tips = [
-    ['رمزارز بخشی از سبد توست', 'با تبدیل بخشی از سود رمزارز به میلی، سبدت متعادل‌تر می‌شود.', 'تبدیل به میلی', () => go('convert', { from: 'btc', to: 'milli' })],
-    ['پول کیف ریالی بیکار است', 'بخشی از آن را در صندوق درآمد ثابت بگذار تا هر روز سود بگیرد.', 'خرید صندوق', () => go('buyAsset', { id: 'income' })],
-    ['قلک سفر نوروز عقب است', 'با ۳۰ میلی واریز بیشتر در هفته، به هدفت می‌رسی.', 'ساخت قلک تازه', () => go('jar')],
-    ['سقف اعتبارت جا برای رشد دارد', 'با اضافه کردن نقره به پشتوانه، سقف بالاتری بگیر.', 'افزایش سقف', () => go('creditUp')],
-  ];
-  return (
-    <>
-      <NavBar title="مشاور هوشمند میلی" />
-      <div className="card gold row"><Sparkles size={22} className="gold" /><span className="grow small" style={{ lineHeight: 1.9 }}>راهنمایی به سمت بهترین سرمایه‌گذاری‌ها، بر اساس سبد دارایی تو.</span></div>
-      {tips.map(([t, s, b, fn]) => (
-        <div className="card mt12" key={t}>
-          <div className="h3">{t}</div>
-          <Sub>{s}</Sub>
-          <button className="btn ghost mt12" style={{ height: 44 }} onClick={fn}>{b}</button>
-        </div>
-      ))}
+      {a.value > 0.5
+        ? <button className="btn ghost mt12" onClick={() => go('convert', { from: a.id, to: 'milli' })}>{a.peg ? 'تبدیل به میلی · یک‌به‌یک' : 'برگرداندن به میلی · بدون کارمزد'}</button>
+        : <button className="btn ghost mt12" onClick={() => go('convert', { from: 'milli', to: a.id })}>خرید با میلی</button>}
     </>
   );
 }
@@ -391,8 +381,8 @@ export function CreditBuy({ p = {} }) {
   const m = monthly(amt, months);
   return (
     <>
-      <NavBar title="خرید اعتباری" />
-      <div className="card soft row"><ShoppingBag size={20} className="gold" /><span className="grow small">اعتبار باقی‌مانده: <b><M t={left} /></b></span></div>
+      <NavBar title="خرید قسطی" />
+      <div className="card soft row"><ShoppingBag size={20} className="gold" /><span className="grow small">اعتبار در دسترس: <b><T t={left} /></b></span></div>
       <div className="h3 mt16">پذیرنده</div>
       <div className="hscroll mt8">{merchants.map((x, i) => <button key={x.name} className={`pill ${mi === i ? 'active' : ''}`} onClick={() => setMi(i)}>{x.name}</button>)}</div>
       <div className="h3 mt16">مبلغ خرید</div>
@@ -400,11 +390,11 @@ export function CreditBuy({ p = {} }) {
       <div className="h3 mt16">تعداد قسط</div>
       <div className="segment mt8">{[3, 6, 12].map((x) => <button key={x} className={months === x ? 'on' : ''} onClick={() => setMonths(x)}>{fa(x)} ماهه</button>)}</div>
       <div className="card mt16">
-        <div className="between small"><span className="muted">قسط ماهانه</span><span className="h3"><M t={m} /></span></div>
+        <div className="between small"><span className="muted">قسط ماهانه</span><span className="h3"><T t={m} /></span></div>
         <div className="divider" />
         <div className="between small"><span className="muted">نرخ سالانه</span><span className="num">{fa(state.credit.rate)}٪</span></div>
       </div>
-      <button className="btn primary mt24" disabled={amt > left} onClick={() => act('creditPurchase', { toman: amt, months, merchant: merchants[mi].name })}>{amt > left ? 'اعتبار کافی نیست' : 'ثبت خرید اعتباری'}</button>
+      <button className="btn primary mt24" disabled={amt > left} onClick={() => act('creditPurchase', { toman: amt, months, merchant: merchants[mi].name })}>{amt > left ? 'اعتبار کافی نیست' : 'ثبت خرید قسطی'}</button>
     </>
   );
 }
@@ -427,7 +417,7 @@ export function Loan() {
       </div>
       <div className="segment mt16">{[6, 12, 24].map((x) => <button key={x} className={months === x ? 'on' : ''} onClick={() => setMonths(x)}>{fa(x)} ماهه</button>)}</div>
       <div className="card mt16">
-        <div className="between small"><span className="muted">قسط ماهانه</span><span className="h3"><M t={monthly(v * 1e6, months)} /></span></div>
+        <div className="between small"><span className="muted">قسط ماهانه</span><span className="h3"><T t={monthly(v * 1e6, months)} /></span></div>
         <div className="divider" />
         <div className="between small"><span className="muted">نرخ سالانه</span><span className="num">{fa(state.credit.rate)}٪</span></div>
         <div className="divider" />
@@ -446,7 +436,7 @@ export function Installments() {
       <NavBar title="اقساط" />
       <div className="card" style={{ textAlign: 'center' }}>
         <div className="small muted">مجموع باقی‌مانده</div>
-        <div className="big-num num mt8"><M t={total} /></div>
+        <div className="big-num num mt8" style={{ fontSize: 34 }}><T t={total} /></div>
       </div>
       {state.installments.length === 0 && <Sub>قسط بازی نداری.</Sub>}
       {state.installments.map((i) => (
@@ -454,7 +444,7 @@ export function Installments() {
           <div className="between"><span className="h3">{i.title}</span><span className="small muted num">{fa(i.left)} قسط مانده</span></div>
           <div className="bar mt12" style={{ height: 8 }}><i style={{ width: `${((i.total - i.left) / i.total) * 100}%` }} /></div>
           <div className="between mt12">
-            <span className="small muted">قسط {MONTHS[i.k % 12]} · <M t={i.monthly} /></span>
+            <span className="small muted">قسط {MONTHS[i.k % 12]} · <T t={i.monthly} /></span>
             <button className="btn primary small" onClick={() => go('payInstallment', { id: i.id })}>پرداخت</button>
           </div>
         </div>
@@ -468,7 +458,7 @@ export function PayInstallment({ p }) {
   const i = state.installments.find((x) => x.id === p.id) || state.installments[0];
   if (!i) return <><NavBar title="پرداخت قسط" /><Sub>قسط بازی نداری.</Sub></>;
   return (
-    <Confirm p={{ title: `قسط ${i.title}`, sub: `قسط ${MONTHS[i.k % 12]}`, milli: i.monthly / PRICE, rate: 0, kind: 'installment', instId: i.id, toman: i.monthly, icon: 'bill', txSub: 'پرداخت قسط', successTitle: 'قسط پرداخت شد', big: <CalendarClock size={30} /> }} />
+    <Confirm p={{ title: `قسط ${i.title}`, sub: `قسط ${MONTHS[i.k % 12]}`, milli: i.monthly / PRICE, rate: 0, kind: 'installment', tomanFirst: true, instId: i.id, toman: i.monthly, icon: 'bill', txSub: 'پرداخت قسط', successTitle: 'قسط پرداخت شد', big: <CalendarClock size={30} /> }} />
   );
 }
 
@@ -494,7 +484,6 @@ export function Score() {
         <Row start={<span className="badge-ic"><Check size={19} className="up" /></span>} title="پرداخت به‌موقع اقساط" sub="۱۰۰٪ در ۱۲ ماه اخیر" />
         <Row start={<span className="badge-ic"><Check size={19} className="up" /></span>} title="سابقه حساب" sub="بیش از ۲ سال" />
         <Row start={<span className="badge-ic"><Coins size={19} /></span>} title="میزان استفاده از اعتبار" sub="۳۷٪ از سقف" />
-        <Row start={<span className="badge-ic"><Diamond /></span>} title="تنوع دارایی‌ها" sub="میلی، صندوق، رمزارز و سهام" />
       </div>
     </>
   );
@@ -831,7 +820,8 @@ const LABELS = { ...backingLabels, eth: { name: 'اتریوم', color: '#8c8cf0'
 export function Backing() {
   const { state, patch } = useApp();
   const on = state.backing;
-  const off = ALL_BACKING.filter((x) => !on.includes(x));
+  const has = (x) => x === 'milli' || x === 'rial' || (state.assets.find((a) => a.id === x)?.value || 0) > 0.5;
+  const off = ALL_BACKING.filter((x) => !on.includes(x) && has(x));
   const bal = (id) => (id === 'milli' ? <M m={state.milli} /> : id === 'rial' ? <span className="num">{money(state.rial, 'toman', false)}</span> : <M t={state.assets.find((a) => a.id === id)?.value || 0} />);
   const move = (i, d) => patch((s) => {
     const a = [...s.backing]; const j = i + d;

@@ -5,13 +5,13 @@ import {
 } from 'lucide-react';
 import { PRICE } from './data.js';
 import { fa, money, milliIn, pct, HIDDEN } from './format.js';
-import { initialState } from './data.js';
+import { initialState, fullAssets, UNITS } from './data.js';
 
 export const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
 
 // زمینه پیش‌فرض برای حالت نمایش (صفحه طرح‌ها)
-export function staticCtx(over = {}) {
+export function staticCtx({ st, ...over } = {}) {
   return {
     state: {
       ...initialState, account: 'personal', frozen: false,
@@ -21,6 +21,7 @@ export function staticCtx(over = {}) {
         { id: 'family', label: 'خانواده رضایی', sub: 'حساب خانواده', type: 'family' },
       ],
       installments: [{ id: 'i1', title: 'خرید اعتباری', monthly: 4200000, left: 7, k: 0, total: 12 }],
+      ...st,
     },
     unit: 'milli', hidden: false, tab: 'home', theme: 'dark',
     setUnit() {}, setTheme() {}, toggleHidden() {}, go() {}, back() {}, setTab() {}, act() {}, toast() {}, patch() {},
@@ -91,10 +92,9 @@ export function TopBar() {
   return (
     <div className="topbar">
       <button className="avatar me" onClick={() => go('profile')} aria-label="پروفایل">ع</button>
-      <div className="grow col">
+      <button className="grow col" style={{ textAlign: 'right' }} onClick={() => go('profile')}>
         <span className="h3">علی رضایی</span>
-        <span><button className="acct-chip" onClick={() => go('accounts')}>{acct ? acct.label : 'حساب شخصی'} <ChevronDown size={13} /></button></span>
-      </div>
+      </button>
       <button className="icon-btn" onClick={() => go('notifications')} aria-label="اعلان‌ها"><Bell size={20} /></button>
     </div>
   );
@@ -182,6 +182,23 @@ export function Alt({ t, m }) {
   if (m != null) return <span className="num">≈ {milliIn(m, other, false)}</span>;
   return <span className="num">≈ {money(t, other, false)}</span>;
 }
+
+// مبلغ تومانی که با کلید واحد عوض نمی‌شود (اعتبار، قسط، قبض، کیف پول ریالی)
+export function T({ t }) {
+  const { hidden } = useApp();
+  return <span className="num">{hidden ? HIDDEN : `${fa(Math.round(t))} تومان`}</span>;
+}
+
+// قیمت هر واحد دارایی و متن زیر نام آن: مقدار کاربر، یا قیمت هر واحد وقتی هنوز نخریده
+export const unitPrice = (id) => { const a = fullAssets.find((x) => x.id === id); const u = UNITS[id]; return a && u ? a.value / u.qty : 1; };
+const qtyFa = (q, dec) => fa(q, Math.abs(q) >= 1000 ? 0 : q && Math.abs(q) < 1 ? dec : Math.min(dec, 2));
+export function assetSub(a) {
+  const u = UNITS[a.id];
+  if (!u) return a.sub;
+  if (a.value > 0.5) return `${qtyFa(a.value / unitPrice(a.id), u.dec)} ${u.u}`;
+  return /^[A-Z]+$/.test(u.u) ? `قیمت ${fa(Math.round(unitPrice(a.id)))} تومان` : `هر ${u.u} ${fa(Math.round(unitPrice(a.id)))} تومان`;
+}
+export const ownAssets = (state) => state.assets.filter((a) => a.value > 0.5);
 
 export function Change({ v, suffix }) {
   return <span className={`num ${v >= 0 ? 'up' : 'down'}`}>{v >= 0 ? '↑' : '↓'} {pct(Math.abs(v))}{suffix ? ` ${suffix}` : ''}</span>;

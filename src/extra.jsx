@@ -106,6 +106,11 @@ export function Split({ title: title0, total: total0 }) {
 /* ───────────── دستیار میلی ───────────── */
 const INTENTS = [
   {
+    q: 'قلک‌هایم در چه وضعی‌اند؟', keys: ['قلک', 'پس‌انداز'],
+    a: 'قلک «سفر نوروز» کمی عقب است. با هفته‌ای ۳۰ میلی بیشتر، سر موعد به هدفت می‌رسی. بقیه قلک‌ها طبق برنامه‌اند.',
+    cta: ['دیدن قلک‌ها', (go) => go('tab:assets')], icon: PiggyBank,
+  },
+  {
     q: 'این ماه چقدر خرج کردم؟', keys: ['خرج', 'هزینه'],
     a: 'این ماه ۱٬۴۶۰ میلی خرج کرده‌ای؛ ۱۲٪ کمتر از ماه قبل. بیشترین سهم با «خوراک و کافه» بوده است.',
     cta: ['دیدن تحلیل خرج', (go) => go('history')], icon: PieChart,
@@ -221,10 +226,11 @@ export const salaryLine = (s) => (s.on
   : 'خاموش');
 
 /* ───────────── خرده‌پول به میلی ───────────── */
-export function RoundUp() {
+export function RoundUp({ open } = {}) {
   const { state, patch } = useApp();
   const r = state.roundup;
   const set = (o) => patch((s) => ({ roundup: { ...s.roundup, ...o } }));
+  const [more, setMore] = useState(!!open);
   const price = 187000, to = Math.ceil(price / r.step) * r.step;
   const spare = (to - price) * r.mult;
   return (
@@ -240,7 +246,12 @@ export function RoundUp() {
         <span className="col gap4"><span className="h3">گرد کردن خریدهای کارت</span><span className="xs muted">باقی‌مانده هر خرید، میلی می‌شود</span></span>
         <Toggle on={r.on} onClick={() => set({ on: !r.on })} />
       </div>
-      <div className="h3 mt24">گرد شود به نزدیک‌ترین</div>
+      <button className="between mt16 small muted" style={{ width: '100%' }} onClick={() => setMore(!more)}>
+        <span>تنظیمات بیشتر</span>
+        <ChevronDown size={16} style={{ transform: more ? 'rotate(180deg)' : 'none' }} />
+      </button>
+      {more && (<>
+      <div className="h3 mt16">گرد شود به نزدیک‌ترین</div>
       <div className="segment mt8">
         {[[10000, '۱۰ هزار'], [50000, '۵۰ هزار'], [100000, '۱۰۰ هزار']].map(([x, l]) => <button key={x} className={r.step === x ? 'on' : ''} onClick={() => set({ step: x })}>{l} تومان</button>)}
       </div>
@@ -259,6 +270,7 @@ export function RoundUp() {
       <div className="segment mt8">
         {[['milli', 'موجودی میلی'], ['jar', 'قلک سفر نوروز']].map(([id, l]) => <button key={id} className={r.dest === id ? 'on' : ''} onClick={() => set({ dest: id })}>{l}</button>)}
       </div>
+      </>)}
     </>
   );
 }

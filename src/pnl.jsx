@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Download, Info, TrendingUp } from 'lucide-react';
 import { useApp, NavBar, ViewToggles, Diamond, AssetIcon, SectionTitle } from './ui.jsx';
-import { PRICE, UNITS, initialState } from './data.js';
+import { PRICE, UNITS, fullAssets } from './data.js';
 import { fa, pct, HIDDEN } from './format.js';
 
 /* ───────────── داده نمونه سود و زیان (ساختگی) ─────────────
@@ -34,7 +34,7 @@ const REALIZED = { btc: 0.3, foolad: 0.2, silver: 0.15 }; // سهم فروخته
 const MILLI_YIELD = [0.3, 2, 9, 27, 99, 126, 15];
 const MILLI_REWARD = [3, 17, 75, 216, 795, 1230, 123];
 const MILLI_FEE = [0, -1.5, -7, -21, -78, -144, -11];
-const unitPrice = (id) => { const a = initialState.assets.find((x) => x.id === id); return a.value / UNITS[id].qty; };
+const unitPrice = (id) => { const a = fullAssets.find((x) => x.id === id); return a.value / UNITS[id].qty; };
 const UNIT = {
   milli: ['هر میلی', PRICE], jars: ['هر میلی', PRICE], silver: ['هر گرم', unitPrice('silver')], coin: ['هر عدد', unitPrice('coin')],
   copper: ['هر کیلوگرم', unitPrice('copper')], goldfund: ['هر واحد', unitPrice('goldfund')], income: ['هر واحد', 10000], btc: ['هر بیت‌کوین', unitPrice('btc')],
@@ -53,7 +53,7 @@ export function computePnl(state, rid = 'm') {
   const raw = [
     { id: 'milli', name: 'میلی (طلا)', group: 'میلی', color: '#fbb918', V: (state.milli + locked) * PRICE, rho: g, y: MILLI_YIELD[i] * PRICE, rw: MILLI_REWARD[i] * PRICE, fee: MILLI_FEE[i] * PRICE },
     { id: 'jars', name: 'قلک‌ها', group: 'قلک‌ها', color: '#e0a100', V: jarsM * PRICE, rho: g, y: 0, rw: 0, fee: 0 },
-    ...state.assets.map((a) => {
+    ...state.assets.filter((a) => a.value > 0.5).map((a) => {
       const income = a.id === 'income';
       const rho = income ? 0 : a.peg ? g : (i === 0 ? a.change : RET[a.id]?.[i] ?? r.g * 0.8) / 100; // میلیکس همراه طلا
       const y = income ? a.value * (INCOME_YIELD[i] / 100) / (1 + INCOME_YIELD[i] / 100) : (a.id === 'foolad' && i >= 4 && i <= 5 ? 620000 : 0);
@@ -87,8 +87,8 @@ export function computePnl(state, rid = 'm') {
   total.pm = (total.m / (start.m + dep.m * w)) * 100;
   const groups = Object.keys(GROUP_COLOR).map((name) => {
     const xs = items.filter((x) => x.group === name);
-    return { name, color: GROUP_COLOR[name], pl: xs.reduce((s, x) => ({ t: s.t + x.pl.t, m: s.m + x.pl.m }), { t: 0, m: 0 }) };
-  });
+    return { name, n: xs.length, color: GROUP_COLOR[name], pl: xs.reduce((s, x) => ({ t: s.t + x.pl.t, m: s.m + x.pl.m }), { t: 0, m: 0 }) };
+  }).filter((x) => x.n > 0);
   const sources = [
     { name: 'تغییر قیمت', pl: sum((x) => x.price) }, { name: 'سود طلایی و صندوق', pl: sum((x) => x.yld) },
     { name: 'پاداش و خرده‌پول', pl: sum((x) => x.reward) }, { name: 'کارمزد', pl: sum((x) => x.fees) },
@@ -281,7 +281,7 @@ function Calendar({ state }) {
 }
 
 /* ───────────── ردیف دارایی با جزئیات بازشو ───────────── */
-function AssetRow({ x, open, onToggle, share }) {
+function AssetRow({ x, open, onToggle, share, pro }) {
   const { go } = useApp();
   const { k, pk, hidden } = useUnit();
   const [uLabel, uNow] = UNIT[x.id] || ['هر واحد', 0];
@@ -307,8 +307,8 @@ function AssetRow({ x, open, onToggle, share }) {
           <div className="pl-grid">
             {cell(`میانگین خرید (${uLabel})`, <span className="num">{toman(avg)}</span>)}
             {cell(`قیمت فعلی (${uLabel})`, <span className="num">{toman(uNow)}</span>)}
-            {cell('محقق‌نشده (دارایی فعلی)', <PL v={x.unrealized} />)}
-            {cell('محقق‌شده (فروش و دریافتی)', <PL v={x.realized} />)}
+            {pro && cell('محقق‌نشده (دارایی فعلی)', <PL v={x.unrealized} />)}
+            {pro && cell('محقق‌شده (فروش و دریافتی)', <PL v={x.realized} />)}
             {cell('تغییر قیمت', <PL v={x.price} />)}
             {cell('سود، پاداش و کارمزد', <PL v={{ t: x.yld.t + x.reward.t + x.fees.t, m: x.yld.m + x.reward.m + x.fees.m }} />)}
           </div>
@@ -333,16 +333,18 @@ export function Pnl({ p = {} }) {
   const [sort, setSort] = useState('amount');
   const [open, setOpen] = useState(p.open || null);
   const [help, setHelp] = useState(!!p.help);
+  const [more, setMore] = useState(!!p.more || !!p.help || !!p.view || !!p.by || p.range === 'c');
   const d = computePnl(state, rid);
   const T = d.total[k];
   const list = [...d.items].sort((a, b) => (sort === 'amount' ? b.pl[k] - a.pl[k] : b.pl[pk] - a.pl[pk]));
   const mx = Math.max(...d.items.map((x) => Math.abs(x.pl[k]))) || 1;
   const other = { t: d.total.m, m: d.total.t }; // همان عدد در واحد مقابل
+  const ranges = more ? RANGES : RANGES.filter((r) => r.id !== 'c');
   return (
     <>
-      <NavBar title="سود و زیان" end={<button className="icon-btn" onClick={() => toast('گزارش سود و زیان آماده شد')} aria-label="دریافت گزارش"><Download size={19} /></button>} />
+      <NavBar title="سود و زیان" />
       <div className="hscroll" style={{ gap: 8 }}>
-        {RANGES.map((r) => <button key={r.id} className={`pill ${rid === r.id ? 'active' : ''}`} onClick={() => setRid(r.id)}>{r.label}</button>)}
+        {ranges.map((r) => <button key={r.id} className={`pill ${rid === r.id ? 'active' : ''}`} onClick={() => setRid(r.id)}>{r.label}</button>)}
       </div>
       {rid === 'c' && (
         <div className="row mt12" style={{ gap: 10 }}>
@@ -360,57 +362,71 @@ export function Pnl({ p = {} }) {
           {hidden ? HIDDEN : <>{sign(Math.round(T))}{fa(Math.abs(Math.round(T)))}<small>{name}</small></>}
         </div>
         <div className="between mt8">
-          <span className="small"><Pct v={d.total[pk]} /> <span className="muted">بازده دوره</span></span>
+          <span className="small"><Pct v={d.total[pk]} /></span>
           <span className="small muted num">{hidden ? HIDDEN : `${k === 'm' ? 'به تومان' : 'به میلی'}: ${sign(Math.round(other[k]))}${fa(Math.abs(Math.round(other[k])))}`}</span>
         </div>
-        <div className="divider" />
-        <div className="row" style={{ gap: 10 }}>
-          <div className="grow col gap4"><span className="xs muted">محقق‌شده</span><span className="h3"><PL v={d.realized} /></span></div>
-          <div className="grow col gap4"><span className="xs muted">محقق‌نشده</span><span className="h3"><PL v={d.unrealized} /></span></div>
-        </div>
-      </div>
-
-      <div className="card mt16">
-        <div className="segment" style={{ background: 'var(--surface-2)' }}>
-          {[['wf', 'آبشاری'], ['trend', 'روند']].map(([id, l]) => <button key={id} className={view === id ? 'on' : ''} onClick={() => setView(id)}>{l}</button>)}
-        </div>
-        {view === 'wf' ? (
+        {more && (
           <>
-            <div className="between mt12">
-              <span className="row" style={{ gap: 8 }}>
-                {[['asset', 'بر اساس دارایی'], ['source', 'بر اساس منبع']].map(([id, l]) => <button key={id} className={`pill sm ${by === id ? 'active' : ''}`} onClick={() => setBy(id)}>{l}</button>)}
-              </span>
-              <span className="xs faint">{k === 'm' ? 'به میلی' : 'به تومان'}</span>
+            <div className="divider" />
+            <div className="row" style={{ gap: 10 }}>
+              <div className="grow col gap4"><span className="xs muted">محقق‌شده</span><span className="h3"><PL v={d.realized} /></span></div>
+              <div className="grow col gap4"><span className="xs muted">محقق‌نشده</span><span className="h3"><PL v={d.unrealized} /></span></div>
             </div>
-            <Waterfall d={d} by={by} />
           </>
-        ) : <div className="mt16"><Trend d={d} /></div>}
+        )}
       </div>
 
-      <button className="row mt12 small muted" style={{ gap: 8, width: '100%', textAlign: 'right' }} onClick={() => setHelp(!help)}>
-        <Info size={16} /><span className="grow">سود و زیان چطور حساب می‌شود؟</span>
-        <ChevronDown size={16} style={{ transform: help ? 'rotate(180deg)' : 'none' }} />
-      </button>
-      {help && (
-        <div className="card soft mt8 small" style={{ lineHeight: 2 }}>
-          سود و زیان هر بازه برابر است با ارزش پایان دوره، منهای ارزش ابتدای دوره، منهای واریز و برداشت خالص؛ پس پولی که تازه آورده‌ای سود حساب نمی‌شود.
-          در حالت میلی، همه دارایی‌ها با طلا سنجیده می‌شوند: خودِ میلی فقط از سود طلایی و پاداش رشد می‌کند و بقیه دارایی‌ها نسبت به طلا دیده می‌شوند.
-          کیف پول ریالی در این محاسبه نیست.
+      <SectionTitle title="هر دارایی چقدر سود داده؟" />
+      {more && (
+        <div className="segment">
+          {[['amount', 'بیشترین مبلغ'], ['pct', 'بیشترین بازده']].map(([id, l]) => <button key={id} className={sort === id ? 'on' : ''} onClick={() => setSort(id)}>{l}</button>)}
         </div>
       )}
-
-      <SectionTitle title="به تفکیک دارایی" />
-      <div className="segment">
-        {[['amount', 'بیشترین مبلغ'], ['pct', 'بیشترین بازده']].map(([id, l]) => <button key={id} className={sort === id ? 'on' : ''} onClick={() => setSort(id)}>{l}</button>)}
-      </div>
-      <div className="mt8">
-        {list.map((x) => <AssetRow key={x.id} x={x} share={Math.abs(x.pl[k]) / mx} open={open === x.id} onToggle={() => setOpen(open === x.id ? null : x.id)} />)}
+      <div className={more ? 'mt8' : ''}>
+        {list.filter((x) => more || Math.round(x.pl[k]) !== 0).map((x) => <AssetRow key={x.id} x={x} pro={more} share={Math.abs(x.pl[k]) / mx} open={open === x.id} onToggle={() => setOpen(open === x.id ? null : x.id)} />)}
       </div>
 
-      <SectionTitle title="تقویم سود و زیان" />
-      <Calendar state={state} />
+      <button className="btn ghost mt16" onClick={() => setMore(!more)}>
+        {more ? 'نمایش ساده' : 'جزئیات بیشتر'}<ChevronDown size={18} style={{ transform: more ? 'rotate(180deg)' : 'none' }} />
+      </button>
 
-      <button className="btn ghost mt16" onClick={() => toast('گزارش سود و زیان آماده شد')}><Download size={19} />دریافت گزارش {d.r.title}</button>
+      {more && (
+        <>
+          <div className="card mt16">
+            <div className="segment" style={{ background: 'var(--surface-2)' }}>
+              {[['wf', 'آبشاری'], ['trend', 'روند']].map(([id, l]) => <button key={id} className={view === id ? 'on' : ''} onClick={() => setView(id)}>{l}</button>)}
+            </div>
+            {view === 'wf' ? (
+              <>
+                <div className="between mt12">
+                  <span className="row" style={{ gap: 8 }}>
+                    {[['asset', 'بر اساس دارایی'], ['source', 'بر اساس منبع']].map(([id, l]) => <button key={id} className={`pill sm ${by === id ? 'active' : ''}`} onClick={() => setBy(id)}>{l}</button>)}
+                  </span>
+                  <span className="xs faint">{k === 'm' ? 'به میلی' : 'به تومان'}</span>
+                </div>
+                <Waterfall d={d} by={by} />
+              </>
+            ) : <div className="mt16"><Trend d={d} /></div>}
+          </div>
+
+          <button className="row mt12 small muted" style={{ gap: 8, width: '100%', textAlign: 'right' }} onClick={() => setHelp(!help)}>
+            <Info size={16} /><span className="grow">سود و زیان چطور حساب می‌شود؟</span>
+            <ChevronDown size={16} style={{ transform: help ? 'rotate(180deg)' : 'none' }} />
+          </button>
+          {help && (
+            <div className="card soft mt8 small" style={{ lineHeight: 2 }}>
+              سود و زیان هر بازه برابر است با ارزش پایان دوره، منهای ارزش ابتدای دوره، منهای واریز و برداشت خالص؛ پس پولی که تازه آورده‌ای سود حساب نمی‌شود.
+              در حالت میلی، همه دارایی‌ها با طلا سنجیده می‌شوند: خودِ میلی فقط از سود طلایی و پاداش رشد می‌کند و بقیه دارایی‌ها نسبت به طلا دیده می‌شوند.
+              کیف پول ریالی در این محاسبه نیست.
+            </div>
+          )}
+
+          <SectionTitle title="تقویم سود و زیان" />
+          <Calendar state={state} />
+
+          <button className="btn ghost mt16" onClick={() => toast('گزارش سود و زیان آماده شد')}><Download size={19} />دریافت گزارش {d.r.title}</button>
+        </>
+      )}
     </>
   );
 }

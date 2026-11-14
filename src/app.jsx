@@ -11,6 +11,7 @@ import * as S from './screens.jsx';
 import { Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
 import { PayHub } from './pay.jsx';
 import { Pnl } from './pnl.jsx';
+import { CardManage, CreditMore, CardPerks } from './simple.jsx';
 
 const TABS = { home: Home, assets: Assets, services: Services, card: Card };
 
@@ -44,7 +45,6 @@ const SCREENS = {
   notifications: () => <S.Notifications />,
   buyAsset: (p) => <S.BuyAsset p={p} />,
   asset: (p) => <S.AssetPage p={p} />,
-  advisor: () => <S.Advisor />,
   credit: (p) => <S.CreditBuy p={p} />,
   loan: () => <S.Loan />,
   installments: () => <S.Installments />,
@@ -65,6 +65,9 @@ const SCREENS = {
   confirm: (p) => <S.Confirm p={p} />,
   merchants: () => <S.Merchants />,
   pnl: (p) => <Pnl p={p} />,
+  cardManage: () => <CardManage />,
+  creditMore: () => <CreditMore />,
+  cardPerks: () => <CardPerks />,
 };
 const BARE = new Set(['scan', 'payhub']);
 

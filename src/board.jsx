@@ -7,12 +7,18 @@ import * as S from './screens.jsx';
 import { Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
 import { PayHub } from './pay.jsx';
 import { Pnl } from './pnl.jsx';
+import { CardManage, CreditMore, CardPerks } from './simple.jsx';
+import { fullAssets } from './data.js';
+
+// سبد پر (ده دارایی) برای صفحه‌هایی که حالت کامل را نشان می‌دهند
+const FULL = { assets: fullAssets, backing: ['milli', 'usdt', 'rial', 'btc'] };
+const ONLY_MILLI = { assets: fullAssets.map((a) => ({ ...a, value: 0 })), backing: ['milli', 'rial'] };
 import {
   Buy, Send, Request, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
 
-function Phone({ children, tall, tab, over, label, note, bare, theme }) {
-  const ctx = staticCtx({ tab, theme: theme || 'dark', ...over });
+function Phone({ children, tall, tab, over, label, note, bare, theme, full, st }) {
+  const ctx = staticCtx({ tab, theme: theme || 'dark', ...over, st: { ...(full ? FULL : null), ...st } });
   return (
     <figure className="frame">
       <Ctx.Provider value={ctx}>
@@ -35,22 +41,47 @@ function Board() {
         <p>طرح صفحه‌ها · تصویر آینده اپ با همه خدمات فعال · داده‌ها نمونه‌اند</p>
       </header>
 
+      <h2>ساده‌سازی: واحدها، سه حالت دارایی‌ها، اعتبار و سود و زیان (تازه)</h2>
+      <section>
+        <Phone tall tab="home" label="خانه" note="یک خط «اعتبار در دسترس» و بنر سود طلایی به‌جای سه بنر؛ تغییر حساب در پروفایل است"><Home /></Phone>
+      </section>
+      <section>
+        <Phone tall tab="assets" st={ONLY_MILLI} label="دارایی‌ها · فقط میلی" note="حالت بیشتر کاربران: بدون نوار ترکیب، راهنما و فیلتر"><Assets /></Phone>
+        <Phone tall tab="assets" label="دارایی‌ها · چند دارایی" note="تا سه دارایی: فهرست ساده و نوار دوتکه؛ کاربر نمونه با همین حالت شروع می‌کند"><Assets /></Phone>
+        <Phone tall tab="assets" full label="دارایی‌ها · سبد پر" note="بیش از سه دارایی: نوار ترکیب و فیلتر گروه ظاهر می‌شود"><Assets /></Phone>
+        <Phone tall label="خرید دارایی" note="ردیف «بازار امروز» بالای فهرست؛ زیر هر دارایی مقدار کاربر یا قیمت هر واحد"><S.BuyAsset p={{}} /></Phone>
+      </section>
+      <section>
+        <Phone tall tab="card" label="کارت و اعتبار" note="کارت، اعتبار در دسترس به تومان، خرید قسطی، وام و قسط بعدی؛ بقیه در سه ردیف"><Card /></Phone>
+        <Phone tall label="مدیریت کارت" note="لایه دوم: مسدودسازی، رمز، پشتوانه، تنظیمات و خریدهای اخیر"><CardManage /></Phone>
+        <Phone label="اعتبار من" note="لایه دوم: اقساط، افزایش سقف و امتیاز"><CreditMore /></Phone>
+        <Phone label="پاداش و خرده‌پول" note="لایه دوم"><CardPerks /></Phone>
+        <Phone label="پرداخت قسط" note="قسط به تومان؛ میلی فقط مقدار برداشت است"><S.PayInstallment p={{ id: 'i1' }} /></Phone>
+      </section>
+      <section>
+        <Phone tall label="سود و زیان · ساده" note="یک عدد، بازه و فهرست دارایی‌ها"><Pnl p={{ open: 'usdt' }} /></Phone>
+        <Phone tall st={ONLY_MILLI} over={{ unit: 'toman' }} label="سود و زیان · فقط میلی · تومان" note="برای کاربری که فقط میلی دارد"><Pnl /></Phone>
+        <Phone tall full label="سود و زیان · جزئیات بیشتر" note="آبشاری، روند، محقق‌شده، تقویم و گزارش پشت یک دکمه"><Pnl p={{ more: true }} /></Phone>
+        <Phone tall label="خرده‌پول به میلی" note="یک کلید؛ مبلغ گرد کردن، ضریب و مقصد زیر «تنظیمات بیشتر»"><RoundUp /></Phone>
+        <Phone tall label="دستیار میلی" note="مشاور هوشمند در دستیار ادغام شد: یادآوری، نه پیشنهاد سرمایه‌گذاری"><Assistant /></Phone>
+      </section>
+
       <h2>چهار تب، دکمه پرداخت در وسط، پروفایل در آواتار</h2>
       <section>
-        <Phone tall tab="home" label="میلی (خانه)" note="نوار دستیار، موجودی میلی، خرید، فروش، انتقال، یادآور هوشمند، کیف پول ریالی با تقسیم حقوق، بنرهای وام، خرید قسطی طلا و سود طلایی" ><Home /></Phone>
-        <Phone tall tab="assets" label="دارایی‌ها" note="مجموع دارایی، باکس میلی (طلا به گرم)، قلک‌ها (شخصی و گروهی)، سایر دارایی‌ها، تبدیل، مشاور هوشمند میلی"><Assets /></Phone>
-        <Phone tall tab="card" label="کارت و اعتبار" note="کارت، پاداش خرید، خرده‌پول به میلی، اعتبار، اقساط، وام، پشتوانه پرداخت"><Card /></Phone>
+        <Phone tall tab="home" label="میلی (خانه)" note="نوار دستیار، موجودی میلی، خرید، فروش، انتقال، یادآور هوشمند، کیف پول ریالی، اعتبار در دسترس، سود طلایی، تراکنش‌های اخیر" ><Home /></Phone>
+        <Phone tall tab="assets" label="دارایی‌ها" note="مجموع دارایی، باکس میلی، قلک‌ها (شخصی و گروهی)، سایر دارایی‌ها، خرید و تبدیل"><Assets /></Phone>
+        <Phone tall tab="card" label="کارت و اعتبار" note="کارت، اعتبار در دسترس، خرید قسطی، وام، قسط بعدی؛ مدیریت کارت، اعتبار من، پاداش و خرده‌پول"><Card /></Phone>
         <Phone tall tab="services" label="خدمات" note="میلی گالری، سود طلایی، قبض، بیمه، املاک، تحویل فیزیکی، پذیرنده‌ها"><Services /></Phone>
         <Phone tall label="پروفایل" note="از آواتار بالای هر تب باز می‌شود"><Profile /></Phone>
       </section>
 
       <h2>سود و زیان (تازه)</h2>
       <section>
-        <Phone tall tab="assets" label="ورودی" note="ردیف «سود و زیان ماه» در باکس مجموع دارایی؛ قلک‌ها هم در مجموع دارایی حساب می‌شود"><Assets /></Phone>
-        <Phone tall label="آبشاری · بر اساس دارایی" note="ابتدای دوره، واریز و برداشت خالص، سهم هر گروه دارایی، پایان دوره"><Pnl p={{ open: 'btc' }} /></Phone>
-        <Phone tall over={{ unit: 'toman' }} label="آبشاری · بر اساس منبع · تومان" note="تغییر قیمت، سود طلایی و صندوق، پاداش و خرده‌پول، کارمزد"><Pnl p={{ by: 'source', range: 'q', help: true }} /></Phone>
-        <Phone tall over={{ unit: 'toman' }} label="روند · تومان" note="سود و زیان تجمعی در برابر «اگر همه دارایی میلی بود»"><Pnl p={{ view: 'trend', range: 'y' }} /></Phone>
-        <Phone tall label="روند · میلی" note="خط صفر یعنی نگه‌داشتن میلی"><Pnl p={{ view: 'trend', range: 'c' }} /></Phone>
+        <Phone tall tab="assets" full label="ورودی" note="ردیف «سود و زیان ماه» در باکس مجموع دارایی؛ قلک‌ها هم در مجموع دارایی حساب می‌شود"><Assets /></Phone>
+        <Phone tall full label="آبشاری · بر اساس دارایی" note="ابتدای دوره، واریز و برداشت خالص، سهم هر گروه دارایی، پایان دوره"><Pnl p={{ open: 'btc', more: true }} /></Phone>
+        <Phone tall full over={{ unit: 'toman' }} label="آبشاری · بر اساس منبع · تومان" note="تغییر قیمت، سود طلایی و صندوق، پاداش و خرده‌پول، کارمزد"><Pnl p={{ by: 'source', range: 'q', help: true }} /></Phone>
+        <Phone tall full over={{ unit: 'toman' }} label="روند · تومان" note="سود و زیان تجمعی در برابر «اگر همه دارایی میلی بود»"><Pnl p={{ view: 'trend', range: 'y' }} /></Phone>
+        <Phone tall full label="روند · میلی" note="خط صفر یعنی نگه‌داشتن میلی"><Pnl p={{ view: 'trend', range: 'c' }} /></Phone>
       </section>
 
       <h2>ظاهر روشن، میلیکس و تراکنش‌های جمع‌شده (تازه)</h2>
@@ -104,7 +135,7 @@ function Board() {
       <h2>خرید، تبدیل و پس‌انداز</h2>
       <section>
         <Phone label="خرید میلی" note="از کیف پول ریالی، با گزینه خرید هفتگی"><Buy preset="600" /></Phone>
-        <Phone label="تبدیل" note="بین هر دو دارایی، فوری؛ کارمزد شفاف و تبدیل به میلی بدون کارمزد"><Convert /></Phone>
+        <Phone full label="تبدیل" note="بین هر دو دارایی، فوری؛ کارمزد شفاف و تبدیل به میلی بدون کارمزد"><Convert /></Phone>
         <Phone label="قلک تازه" note="هدف به میلی، واریز خودکار"><NewJar /></Phone>
         <Phone label="قبض و شارژ" note="پرداخت همه با میلی"><Bills /></Phone>
         <Phone tall label="افزایش سقف اعتبار" note="پشتوانه: میلی، صندوق‌ها، نقره، تتر و ..."><CreditUp /></Phone>

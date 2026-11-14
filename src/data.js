@@ -14,22 +14,27 @@ export const user = {
   ],
 };
 
+// فهرست کامل سایر دارایی‌ها با مقدار نمونه «سبد پر» (قیمت هر واحد = ارزش ÷ مقدار در UNITS)
+export const fullAssets = [
+  { id: 'silver', name: 'نقره', sub: '۴۱۰ گرم', group: 'فلزات', value: 187361800, change: -0.2, color: '#c9ced6' },
+  { id: 'coin', name: 'سکه', sub: 'ربع‌سکه · ۱ عدد', group: 'فلزات', value: 72840000, change: 0.5, color: '#f2c14e' },
+  { id: 'copper', name: 'مس', sub: '۲٫۸ کیلوگرم', group: 'فلزات', value: 10166489, change: 0, color: '#c8743f' },
+  { id: 'goldfund', name: 'صندوق طلای میلی', sub: '۴۸٬۰۰۰ واحد', group: 'صندوق', value: 106512000, change: 0, color: '#2a49e8' },
+  { id: 'income', name: 'صندوق درآمد ثابت', sub: 'سود روزشمار ۲۰٪ سالانه', group: 'صندوق', value: 60000000, change: 0.1, color: '#5470ff' },
+  { id: 'millix', name: 'میلیکس', sub: '۲٬۰۰۰ MLX', group: 'رمزارز', value: 49796000, change: 0.3, color: '#ffd66b', peg: true }, // توکن میلی: هر MLX معادل یک میلی
+  { id: 'btc', name: 'بیت‌کوین', sub: '۰٫۰۱۸ BTC', group: 'رمزارز', value: 328161551, change: -2.5, color: '#f7931a' },
+  { id: 'eth', name: 'اتریوم', sub: '۰٫۳۵ ETH', group: 'رمزارز', value: 180736031, change: -1.7, color: '#8c8cf0' },
+  { id: 'usdt', name: 'تتر', sub: '۱۲۶ USDT', group: 'رمزارز', value: 34220529, change: 0.3, color: '#26a17b' },
+  { id: 'foolad', name: 'فولاد مبارکه', sub: '۲۰٬۰۰۰ سهم', group: 'سهام', value: 10020000, change: 1.2, color: '#3b82f6' },
+];
+// کاربر نمونه فقط این چند دارایی را دارد؛ بقیه با اولین خرید به فهرستش اضافه می‌شوند
+export const HELD = ['millix', 'usdt', 'coin'];
+
 export const initialState = {
   milli: 14750, // موجودی میلی
   rial: 24600000, // کیف پول ریالی به تومان
   rewardsMonth: 56, // پاداش این ماه به میلی
-  assets: [
-    { id: 'silver', name: 'نقره', sub: '۴۱۰ گرم', group: 'فلزات', value: 187361800, change: -0.2, color: '#c9ced6' },
-    { id: 'coin', name: 'سکه', sub: 'ربع‌سکه · ۱ عدد', group: 'فلزات', value: 72840000, change: 0.5, color: '#f2c14e' },
-    { id: 'copper', name: 'مس', sub: '۲٫۸ کیلوگرم', group: 'فلزات', value: 10166489, change: 0, color: '#c8743f' },
-    { id: 'goldfund', name: 'صندوق طلای میلی', sub: '۴۸٬۰۰۰ واحد', group: 'صندوق', value: 106512000, change: 0, color: '#2a49e8' },
-    { id: 'income', name: 'صندوق درآمد ثابت', sub: 'سود روزشمار ۲۰٪ سالانه', group: 'صندوق', value: 60000000, change: 0.1, color: '#5470ff' },
-    { id: 'millix', name: 'میلیکس', sub: '۲٬۰۰۰ MLX', group: 'رمزارز', value: 49796000, change: 0.3, color: '#ffd66b', peg: true }, // توکن میلی: هر MLX معادل یک میلی
-    { id: 'btc', name: 'بیت‌کوین', sub: '۰٫۰۱۸ BTC', group: 'رمزارز', value: 328161551, change: -2.5, color: '#f7931a' },
-    { id: 'eth', name: 'اتریوم', sub: '۰٫۳۵ ETH', group: 'رمزارز', value: 180736031, change: -1.7, color: '#8c8cf0' },
-    { id: 'usdt', name: 'تتر', sub: '۱۲۶ USDT', group: 'رمزارز', value: 34220529, change: 0.3, color: '#26a17b' },
-    { id: 'foolad', name: 'فولاد مبارکه', sub: '۲۰٬۰۰۰ سهم', group: 'سهام', value: 10020000, change: 1.2, color: '#3b82f6' },
-  ],
+  assets: fullAssets.map((a) => (HELD.includes(a.id) ? a : { ...a, value: 0 })),
   jars: [
     { id: 'home', name: 'خرید خانه', icon: '🏠', saved: 15600, goal: 210000, auto: 'ماهانه ۶۰ میلی' },
     { id: 'trip', name: 'سفر نوروز', icon: '✈️', saved: 540, goal: 1200, auto: 'هفتگی ۳۰ میلی' },
@@ -44,7 +49,7 @@ export const initialState = {
     { id: 5, title: 'خرید میلی', sub: 'از کیف پول ریالی · ۱۷ آبان', milli: 600, icon: 'buy' },
   ],
   credit: { limit: 80000000, used: 30000000, score: 'A', rate: 23 },
-  backing: ['milli', 'usdt', 'rial', 'btc'],
+  backing: ['milli', 'usdt', 'rial'],
   roundup: { on: true, step: 10000, mult: 1, saved: 19, dest: 'milli' }, // خرده‌پول به میلی
   salary: { on: true, milli: 20, jar: 10, fund: 0 }, // تقسیم حقوق (درصد)
   protect: { face: true, places: true, delay: false, limit: 1500 }, // محافظت از دارایی
