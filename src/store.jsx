@@ -118,7 +118,7 @@ function apply(s, kind, p) {
     }
     case 'jar':
       return {
-        s: { ...s, jars: [...s.jars, { id: `j${Date.now()}`, name: p.name, icon: p.icon, saved: 0, goal: 120000, auto: p.group ? `گروهی · ${fa(p.group + 1)} نفر` : `${p.freq} ${p.per} میلی`, group: !!p.group }] },
+        s: { ...s, jars: [...s.jars, { id: `j${Date.now()}`, name: p.name, icon: p.icon, saved: 0, goal: 36000, auto: p.group ? `گروهی · ${fa(p.group + 1)} نفر` : `${p.freq} ${p.per} میلی`, group: !!p.group }] },
         ok: { title: 'قلک ساخته شد', sub: p.name, hideAmount: true },
       };
     case 'lock': {

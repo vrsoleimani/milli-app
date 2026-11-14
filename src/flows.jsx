@@ -60,7 +60,7 @@ export function Buy({ preset = '' }) {
       </div>
       <AmountDisplay raw={raw} unit={unit} />
       <div className="chips">
-        {(unit === 'milli' ? [100, 500, 1000, 5000] : [500000, 1000000, 5000000]).map((x) => (
+        {(unit === 'milli' ? [50, 100, 500, 1000] : [500000, 1000000, 5000000]).map((x) => (
           <button key={x} className="pill num" onClick={() => setRaw(String(x))}>{fa(x)}</button>
         ))}
       </div>
@@ -198,7 +198,7 @@ export function FakeQR({ seed: sd = 7, size = 178, inset = 36, abs = true }) {
 /* ───────────── تأیید پرداخت ───────────── */
 export function Pay() {
   const { act, state } = useApp();
-  const m = 150;
+  const m = 45;
   const [src, setSrc] = useState(state.backing?.[0] || 'milli');
   const ok = sourceBalance(state, src) >= m * PRICE;
   return (
@@ -213,11 +213,11 @@ export function Pay() {
       <div className="card mt16">
         <SourceRow value={src} onChange={setSrc} />
         <div className="divider" />
-        <div className="between small"><span className="muted">پاداش این خرید</span><span className="gold">+۳ میلی (۲٪)</span></div>
+        <div className="between small"><span className="muted">پاداش این خرید</span><span className="gold">+۰٫۹ میلی (۲٪)</span></div>
         <div className="divider" />
         <div className="between small"><span className="muted">کارمزد</span><span>رایگان</span></div>
       </div>
-      <button className="btn primary" style={{ marginTop: 110 }} disabled={!ok} onClick={() => act('pay', { milli: m, reward: 3, to: 'کافه لمیز', source: src })}>{ok ? 'پرداخت' : 'موجودی این منبع کافی نیست'}</button>
+      <button className="btn primary" style={{ marginTop: 110 }} disabled={!ok} onClick={() => act('pay', { milli: m, reward: 0.9, to: 'کافه لمیز', source: src })}>{ok ? 'پرداخت' : 'موجودی این منبع کافی نیست'}</button>
     </>
   );
 }
@@ -462,7 +462,7 @@ export function NewJar() {
         </div>
       )}
       <div className="field mt16"><label>نام قلک</label><input className="v" value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%' }} /></div>
-      <div className="field mt12"><label>هدف</label><div className="v num">۱۲۰٬۰۰۰ میلی <span className="small muted">≈ {fa(120000 * PRICE)} تومان</span></div></div>
+      <div className="field mt12"><label>هدف</label><div className="v num">۳۶٬۰۰۰ میلی <span className="small muted">≈ {fa(36000 * PRICE)} تومان</span></div></div>
       <div className="field mt12 row"><Calendar size={18} className="muted" /><div className="grow"><label>تا</label><div className="v">اسفند ۱۴۰۶</div></div></div>
       <div className="h3 mt24">واریز خودکار</div>
       <div className="segment mt8">{['روزانه', 'هفتگی', 'ماهانه'].map((x) => <button key={x} className={freq === x ? 'on' : ''} onClick={() => setFreq(x)}>{x}</button>)}</div>
@@ -556,10 +556,10 @@ export function OnbGift() {
   return (
     <div className="col" style={{ alignItems: 'center', paddingTop: 80, minHeight: '100%' }}>
       <span style={{ fontSize: 70 }}>🎁</span>
-      <span className="h1 mt24">۱۰۰ میلی هدیه گرفتی</span>
+      <span className="h1 mt24">۳۰ میلی هدیه گرفتی</span>
       <span className="muted mt12" style={{ textAlign: 'center', lineHeight: 1.9 }}>حسابت آماده است. اولین میلی‌هایت در کیف تو است؛ حالا می‌توانی بیشتر بخری یا به دوستت بفرستی.</span>
       <div className="card mt32" style={{ width: '100%' }}>
-        <div className="between"><span className="muted small">موجودی میلی</span><span className="h2 num">۱۰۰ میلی</span></div>
+        <div className="between"><span className="muted small">موجودی میلی</span><span className="h2 num">۳۰ میلی</span></div>
         <div className="divider" />
         <div className="between"><span className="muted small">قیمت هر میلی</span><span className="h3 num">{fa(PRICE)} تومان</span></div>
       </div>

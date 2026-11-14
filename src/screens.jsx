@@ -183,7 +183,7 @@ export function Rewards() {
         <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="خرید با کارت" end={<span className="gold small">۱٪</span>} />
         <Row start={<span className="badge-ic"><Store size={19} /></span>} title="پرداخت QR در پذیرنده‌ها" end={<span className="gold small">تا ۳٪</span>} />
         <Row start={<span className="badge-ic"><Star size={19} /></span>} title="قبض و شارژ" end={<span className="gold small">۱٪</span>} />
-        <Row start={<span className="badge-ic"><Users size={19} /></span>} title="دعوت از دوستان" end={<span className="gold small">۱۰۰ میلی</span>} />
+        <Row start={<span className="badge-ic"><Users size={19} /></span>} title="دعوت از دوستان" end={<span className="gold small">۳۰ میلی</span>} />
       </div>
       <SectionTitle title="پاداش‌های اخیر" />
       {state.tx.filter((t) => t.icon === 'gift' || t.icon === 'qr').slice(0, 4).map((t) => (
@@ -281,7 +281,7 @@ export function Notifications() {
   const { state } = useApp();
   const items = [
     ['gift', 'پاداش خرید به حسابت اضافه شد', `${fa(state.rewardsMonth, 0)} میلی پاداش این ماه`, 'امروز'],
-    ['in', 'سارا ۱٬۰۰۰ میلی فرستاد', 'برای سهم شام', 'دیروز'],
+    ['in', 'سارا ۳۰۰ میلی فرستاد', 'برای سهم شام', 'دیروز'],
     ['bill', 'قبض برق سررسید می‌شود', 'تا ۵ روز دیگر', 'دیروز'],
     ['price', 'قیمت هر میلی به ' + fa(PRICE) + ' تومان رسید', `رشد ${fa(PRICE_CHANGE, 1)}٪ نسبت به دیروز`, '۲ روز پیش'],
     ['inst', 'قسط بعدی ۲۵ آذر است', 'می‌توانی از هم‌اکنون پرداخت کنی', '۳ روز پیش'],
@@ -363,7 +363,7 @@ export function Advisor() {
   const tips = [
     ['رمزارز بخشی از سبد توست', 'با تبدیل بخشی از سود رمزارز به میلی، سبدت متعادل‌تر می‌شود.', 'تبدیل به میلی', () => go('convert', { from: 'btc', to: 'milli' })],
     ['پول کیف ریالی بیکار است', 'بخشی از آن را در صندوق درآمد ثابت بگذار تا هر روز سود بگیرد.', 'خرید صندوق', () => go('buyAsset', { id: 'income' })],
-    ['قلک سفر نوروز عقب است', 'با ۱۰۰ میلی واریز بیشتر در هفته، به هدفت می‌رسی.', 'ساخت قلک تازه', () => go('jar')],
+    ['قلک سفر نوروز عقب است', 'با ۳۰ میلی واریز بیشتر در هفته، به هدفت می‌رسی.', 'ساخت قلک تازه', () => go('jar')],
     ['سقف اعتبارت جا برای رشد دارد', 'با اضافه کردن نقره به پشتوانه، سقف بالاتری بگیر.', 'افزایش سقف', () => go('creditUp')],
   ];
   return (
@@ -529,10 +529,10 @@ export function Insurance() {
   return (
     <Catalog title="بیمه" icon={<ShieldCheck size={22} />} intro="حق بیمه را با میلی بپرداز و پاداش بگیر."
       items={[
-        { name: 'بیمه بدنه خودرو', sub: 'پوشش کامل · یک‌ساله', milli: 9600, icon: <Car size={22} /> },
-        { name: 'بیمه شخص ثالث', sub: 'یک‌ساله', milli: 3200, icon: <Car size={22} /> },
-        { name: 'بیمه درمان تکمیلی', sub: 'فردی · یک‌ساله', milli: 7800, icon: <HeartPulse size={22} /> },
-        { name: 'بیمه عمر و پس‌انداز', sub: 'پرداخت ماهانه', milli: 400, per: 'در ماه', icon: <Heart size={22} /> },
+        { name: 'بیمه بدنه خودرو', sub: 'پوشش کامل · یک‌ساله', milli: 2900, icon: <Car size={22} /> },
+        { name: 'بیمه شخص ثالث', sub: 'یک‌ساله', milli: 960, icon: <Car size={22} /> },
+        { name: 'بیمه درمان تکمیلی', sub: 'فردی · یک‌ساله', milli: 2340, icon: <HeartPulse size={22} /> },
+        { name: 'بیمه عمر و پس‌انداز', sub: 'پرداخت ماهانه', milli: 120, per: 'در ماه', icon: <Heart size={22} /> },
       ]}
       mk={(it) => ({ title: it.name, sub: it.sub, milli: it.milli, rate: 0.01, icon: 'shop', txSub: 'بیمه', big: <ShieldCheck size={30} />, successTitle: 'بیمه‌نامه صادر شد' })} />
   );
@@ -610,7 +610,7 @@ export function RealEstate() {
   return (
     <>
       <NavBar title="املاک متری" />
-      <Sub>از ۵۰۰ میلی، صاحب سهمی از ملک شو. سهم اجاره هر ماه به کیف پولت می‌آید.</Sub>
+      <Sub>از ۱۵۰ میلی، صاحب سهمی از ملک شو. سهم اجاره هر ماه به کیف پولت می‌آید.</Sub>
       <div className="mt16">
         {props.map(([a, b], i) => (
           <button key={a} className="card row mt12" style={{ width: '100%', textAlign: 'right', border: pi === i ? '1.5px solid var(--gold)' : '1.5px solid transparent' }} onClick={() => setPi(i)}>
@@ -620,7 +620,7 @@ export function RealEstate() {
           </button>
         ))}
       </div>
-      <div className="mt16"><Stepper v={n} set={setN} min={1} max={40} label="تعداد سهم (هر سهم ۵۰۰ میلی)" /></div>
+      <div className="mt16"><Stepper v={n} set={setN} min={1} max={40} label="تعداد سهم (هر سهم ۱۵۰ میلی)" /></div>
       <div className="card mt16"><div className="between"><span className="muted small">مبلغ</span><span className="h2"><M m={n * 500} /></span></div></div>
       <button className="btn primary mt24" onClick={() => go('confirm', { title: `${fa(n)} سهم ${props[pi][0]}`, sub: 'خرید سهم ملک', milli: n * 500, rate: 0.005, icon: 'shop', txSub: 'املاک متری', big: <Building2 size={30} />, successTitle: 'سهم‌ها به نامت ثبت شد' })}>ادامه</button>
     </>
@@ -692,7 +692,7 @@ export function GiftCard() {
 
 export function Family() {
   const { go, toast } = useApp();
-  const members = [['علی رضایی (شما)', 'مدیر حساب', null], ['سارا رضایی', 'سهم ماهانه ۵۰۰ میلی', 'sara'], ['رضا رضایی', 'سهم ماهانه ۳۰۰ میلی', 'reza']];
+  const members = [['علی رضایی (شما)', 'مدیر حساب', null], ['سارا رضایی', 'سهم ماهانه ۱۵۰ میلی', 'sara'], ['رضا رضایی', 'سهم ماهانه ۹۰ میلی', 'reza']];
   return (
     <>
       <NavBar title="خانواده رضایی" />
@@ -705,9 +705,9 @@ export function Family() {
         ))}
       </div>
       <SectionTitle title="خرج‌های این ماه" />
-      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="خرید خانه" sub="همه اعضا" end={<span>−<M m={1240} /></span>} />
-      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="سارا" sub="سهم ماهانه" end={<span>−<M m={320} /></span>} />
-      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="رضا" sub="سهم ماهانه" end={<span>−<M m={120} /></span>} />
+      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="خرید خانه" sub="همه اعضا" end={<span>−<M m={372} /></span>} />
+      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="سارا" sub="سهم ماهانه" end={<span>−<M m={96} /></span>} />
+      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="رضا" sub="سهم ماهانه" end={<span>−<M m={36} /></span>} />
     </>
   );
 }
@@ -734,13 +734,13 @@ export function Business() {
   const { state, go, act } = useApp();
   const hours = [3, 5, 4, 8, 12, 9, 14, 11, 7];
   const mx = Math.max(...hours);
-  const toman = Math.round(4800 * PRICE);
+  const toman = Math.round(1440 * PRICE);
   return (
     <>
       <NavBar title="کافه نارنج" />
       <div className="card" style={{ textAlign: 'center' }}>
         <div className="small muted">فروش امروز</div>
-        <div className="big-num num mt8"><M m={4800} /></div>
+        <div className="big-num num mt8"><M m={1440} /></div>
         <div className="small muted mt8">۳۲ پرداخت</div>
         <div className="row mt16" style={{ alignItems: 'flex-end', height: 70, gap: 6, direction: 'ltr' }}>
           {hours.map((h, i) => <i key={i} style={{ flex: 1, height: `${(h / mx) * 100}%`, background: i === 6 ? 'var(--gold)' : '#2a2a2a', borderRadius: 6 }} />)}
@@ -751,9 +751,9 @@ export function Business() {
         <button className="btn ghost" disabled={state.settled} onClick={() => act('settle', { toman })}>{state.settled ? 'تسویه شد' : 'تسویه به کیف ریالی'}</button>
       </div>
       <SectionTitle title="پرداخت‌های اخیر" />
-      <Row start={<TxIcon kind="in" />} title="رضا کریمی" sub="۱۱:۲۰" end={<span className="up">+<M m={56} /></span>} />
-      <Row start={<TxIcon kind="in" />} title="مریم نوری" sub="۱۰:۴۵" end={<span className="up">+<M m={112} /></span>} />
-      <Row start={<TxIcon kind="in" />} title="ندا رحیمی" sub="۱۰:۱۰" end={<span className="up">+<M m={84} /></span>} />
+      <Row start={<TxIcon kind="in" />} title="رضا کریمی" sub="۱۱:۲۰" end={<span className="up">+<M m={17} /></span>} />
+      <Row start={<TxIcon kind="in" />} title="مریم نوری" sub="۱۰:۴۵" end={<span className="up">+<M m={34} /></span>} />
+      <Row start={<TxIcon kind="in" />} title="ندا رحیمی" sub="۱۰:۱۰" end={<span className="up">+<M m={25} /></span>} />
     </>
   );
 }
@@ -922,8 +922,8 @@ export function Settings({ p }) {
         <NavBar title="دعوت از دوستان" />
         <div className="card gold" style={{ textAlign: 'center' }}>
           <Gift size={34} className="gold" />
-          <div className="h2 mt12">برای هر دعوت ۱۰۰ میلی هدیه</div>
-          <Sub>دوستت هم ۱۰۰ میلی هدیه می‌گیرد.</Sub>
+          <div className="h2 mt12">برای هر دعوت ۳۰ میلی هدیه</div>
+          <Sub>دوستت هم ۳۰ میلی هدیه می‌گیرد.</Sub>
         </div>
         <div className="field mt16 between"><span className="num h3" style={{ letterSpacing: 2 }}>ALI-MILLI</span><Link2 size={18} className="muted" /></div>
         <div className="row mt16" style={{ gap: 10 }}>

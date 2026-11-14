@@ -17,7 +17,7 @@ export const user = {
 export const initialState = {
   milli: 14750, // موجودی میلی
   rial: 24600000, // کیف پول ریالی به تومان
-  rewardsMonth: 186, // پاداش این ماه به میلی
+  rewardsMonth: 56, // پاداش این ماه به میلی
   assets: [
     { id: 'silver', name: 'نقره', sub: '۴۱۰ گرم', group: 'فلزات', value: 187361800, change: -0.2, color: '#c9ced6' },
     { id: 'coin', name: 'سکه', sub: 'ربع‌سکه · ۱ عدد', group: 'فلزات', value: 72840000, change: 0.5, color: '#f2c14e' },
@@ -30,25 +30,25 @@ export const initialState = {
     { id: 'foolad', name: 'فولاد مبارکه', sub: '۲۰٬۰۰۰ سهم', group: 'سهام', value: 10020000, change: 1.2, color: '#3b82f6' },
   ],
   jars: [
-    { id: 'home', name: 'خرید خانه', icon: '🏠', saved: 52000, goal: 700000, auto: 'ماهانه ۲۰۰ میلی' },
-    { id: 'trip', name: 'سفر نوروز', icon: '✈️', saved: 1800, goal: 4000, auto: 'هفتگی ۱۰۰ میلی' },
-    { id: 'dowry', name: 'جهیزیه سارا', icon: '🎁', saved: 3100, goal: 50000, auto: 'هفتگی ۶۷ میلی' },
-    { id: 'north', name: 'سفر شمال', icon: '🏖️', saved: 2400, goal: 6000, auto: 'گروهی · ۴ نفر', group: true },
+    { id: 'home', name: 'خرید خانه', icon: '🏠', saved: 15600, goal: 210000, auto: 'ماهانه ۶۰ میلی' },
+    { id: 'trip', name: 'سفر نوروز', icon: '✈️', saved: 540, goal: 1200, auto: 'هفتگی ۳۰ میلی' },
+    { id: 'dowry', name: 'جهیزیه سارا', icon: '🎁', saved: 930, goal: 15000, auto: 'هفتگی ۲۰ میلی' },
+    { id: 'north', name: 'سفر شمال', icon: '🏖️', saved: 720, goal: 1800, auto: 'گروهی · ۴ نفر', group: true },
   ],
   tx: [
-    { id: 1, title: 'کافه لمیز', sub: 'پرداخت QR · امروز ۹:۱۲', milli: -56, icon: 'qr' },
-    { id: 2, title: 'سارا احمدی', sub: 'دریافت · دیروز', milli: 1000, icon: 'in' },
-    { id: 3, title: 'پاداش خرید', sub: 'کارت میلی · دیروز', milli: 4, icon: 'gift' },
-    { id: 4, title: 'قبض برق', sub: 'قبض · ۱۸ آبان', milli: -120, icon: 'bill' },
-    { id: 5, title: 'خرید میلی', sub: 'از کیف پول ریالی · ۱۷ آبان', milli: 2000, icon: 'buy' },
+    { id: 1, title: 'کافه لمیز', sub: 'پرداخت QR · امروز ۹:۱۲', milli: -17, icon: 'qr' },
+    { id: 2, title: 'سارا احمدی', sub: 'دریافت · دیروز', milli: 300, icon: 'in' },
+    { id: 3, title: 'پاداش خرید', sub: 'کارت میلی · دیروز', milli: 1, icon: 'gift' },
+    { id: 4, title: 'قبض برق', sub: 'قبض · ۱۸ آبان', milli: -36, icon: 'bill' },
+    { id: 5, title: 'خرید میلی', sub: 'از کیف پول ریالی · ۱۷ آبان', milli: 600, icon: 'buy' },
   ],
   credit: { limit: 80000000, used: 30000000, score: 'A', rate: 23 },
   backing: ['milli', 'usdt', 'rial', 'btc'],
-  roundup: { on: true, step: 10000, mult: 1, saved: 64, dest: 'milli' }, // خرده‌پول به میلی
+  roundup: { on: true, step: 10000, mult: 1, saved: 19, dest: 'milli' }, // خرده‌پول به میلی
   salary: { on: true, milli: 20, jar: 10, fund: 0 }, // تقسیم حقوق (درصد)
-  protect: { face: true, places: true, delay: false, limit: 5000 }, // محافظت از دارایی
+  protect: { face: true, places: true, delay: false, limit: 1500 }, // محافظت از دارایی
   locks: [], // طلای مسدود در سود طلایی
-  splits: [{ id: 's1', title: 'تولد مریم', total: 2400, people: 3, paid: 2 }], // دنگ‌های باز
+  splits: [{ id: 's1', title: 'تولد مریم', total: 720, people: 3, paid: 2 }], // دنگ‌های باز
 };
 
 export const contacts = [

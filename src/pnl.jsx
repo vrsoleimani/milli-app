@@ -31,9 +31,9 @@ const INCOME_YIELD = [0.06, 0.4, 1.6, 4.9, 20, 31, 2.9]; // صندوق درآم�
 const FEE = { btc: 0.0025, eth: 0.002, usdt: 0.001, foolad: 0.003, income: 0 }; // کارمزد ماهانه نسبت به ارزش
 const REALIZED = { btc: 0.3, foolad: 0.2, silver: 0.15 }; // سهم فروخته‌شده از سود قیمتی
 // اجزای باکس میلی به میلی: سود طلایی، پاداش کارت و خرده‌پول، کارمزد
-const MILLI_YIELD = [1, 7, 30, 90, 330, 420, 50];
-const MILLI_REWARD = [9, 58, 250, 720, 2650, 4100, 410];
-const MILLI_FEE = [0, -5, -22, -70, -260, -480, -35];
+const MILLI_YIELD = [0.3, 2, 9, 27, 99, 126, 15];
+const MILLI_REWARD = [3, 17, 75, 216, 795, 1230, 123];
+const MILLI_FEE = [0, -1.5, -7, -21, -78, -144, -11];
 const unitPrice = (id) => { const a = initialState.assets.find((x) => x.id === id); return a.value / UNITS[id].qty; };
 const UNIT = {
   milli: ['هر میلی', PRICE], jars: ['هر میلی', PRICE], silver: ['هر گرم', unitPrice('silver')], coin: ['هر عدد', unitPrice('coin')],

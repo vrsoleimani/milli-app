@@ -62,7 +62,7 @@ function Board() {
       </section>
       <section>
         <Phone tall label="۸ · تراکنش‌ها و خرج" note="نمودار ماهانه، دسته‌بندی، جستجو، معادل تومانی"><S.History /></Phone>
-        <Phone tall label="۱۰ · هدیه میلی" note="کارت تبریک و مناسبت در همان جریان ارسال"><Send preset="1000" gift /></Phone>
+        <Phone tall label="۱۰ · هدیه میلی" note="کارت تبریک و مناسبت در همان جریان ارسال"><Send preset="300" gift /></Phone>
         <Phone tall label="۱۱ · محافظت از دارایی" note="در امنیت و ورود"><S.Settings p={{ kind: 'security' }} /></Phone>
         <Phone tall label="۱۲ · منبع پرداخت" note="تعویض فوری منبع در صفحه تأیید"><Pay /></Phone>
         <Phone tall label="سود طلایی" note="ماهانه ۱٪ سود به میلی، حداقل ۶ ماه"><S.GoldYield /></Phone>
@@ -81,13 +81,13 @@ function Board() {
         <Phone bare label="۱ · اسکن QR" note="از دکمه پرداخت وسط نوار"><Scan /></Phone>
         <Phone label="۲ · تأیید پرداخت" note="پرداخت از میلی، پاداش ۲٪"><Pay /></Phone>
         <Phone label="۳ · پرداخت انجام شد"><Success /></Phone>
-        <Phone label="ارسال میلی به دوست"><Send preset="1000" /></Phone>
-        <Phone label="درخواست میلی"><Request preset="800" /></Phone>
+        <Phone label="ارسال میلی به دوست"><Send preset="300" /></Phone>
+        <Phone label="درخواست میلی"><Request preset="240" /></Phone>
       </section>
 
       <h2>خرید، تبدیل و پس‌انداز</h2>
       <section>
-        <Phone label="خرید میلی" note="از کیف پول ریالی، با گزینه خرید هفتگی"><Buy preset="2000" /></Phone>
+        <Phone label="خرید میلی" note="از کیف پول ریالی، با گزینه خرید هفتگی"><Buy preset="600" /></Phone>
         <Phone label="تبدیل" note="بین هر دو دارایی، فوری"><Convert /></Phone>
         <Phone label="قلک تازه" note="هدف به میلی، واریز خودکار"><NewJar /></Phone>
         <Phone label="قبض و شارژ" note="پرداخت همه با میلی"><Bills /></Phone>
@@ -98,7 +98,7 @@ function Board() {
       <section>
         <Phone label="۱ · خوش‌آمد"><Welcome /></Phone>
         <Phone label="۲ · شماره و کد"><OnbPhone /></Phone>
-        <Phone label="۳ · هدیه ۱۰۰ میلی"><OnbGift /></Phone>
+        <Phone label="۳ · هدیه ۳۰ میلی"><OnbGift /></Phone>
       </section>
     </main>
   );

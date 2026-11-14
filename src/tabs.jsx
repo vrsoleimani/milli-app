@@ -245,7 +245,7 @@ export function Services() {
         <button className="jar" style={{ minWidth: 220, textAlign: 'right' }} onClick={() => go('realestate')}>
           <Building2 size={24} className="gold" />
           <div className="h3 mt8">املاک متری</div>
-          <div className="xs muted mt8">از ۵۰۰ میلی، صاحب سهمی از ملک شو</div>
+          <div className="xs muted mt8">از ۱۵۰ میلی، صاحب سهمی از ملک شو</div>
         </button>
         <button className="jar" style={{ minWidth: 220, textAlign: 'right' }} onClick={() => go('delivery')}>
           <Coins size={24} className="gold" />
@@ -327,9 +327,9 @@ export function Card() {
       </div>
 
       <SectionTitle title="خریدهای اخیر" />
-      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="دیجی‌کالا" sub="امروز · از میلی" end={<span>−<M m={312} /></span>} endSub={<span className="gold xs">+۳ پاداش · +۱ خرده‌پول</span>} />
-      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="افق کوروش" sub="دیروز · از میلی" end={<span>−<M m={88} /></span>} endSub={<span className="gold xs">+۱ میلی پاداش</span>} />
-      <Row start={<span className="badge-ic"><Smartphone size={19} /></span>} title="اسنپ" sub="۱۸ آبان · از تتر" end={<span>−<M m={41} /></span>} />
+      <Row start={<span className="badge-ic"><ShoppingBag size={19} /></span>} title="دیجی‌کالا" sub="امروز · از میلی" end={<span>−<M m={94} /></span>} endSub={<span className="gold xs">+۰٫۹ پاداش · +۰٫۳ خرده‌پول</span>} />
+      <Row start={<span className="badge-ic"><Store size={19} /></span>} title="افق کوروش" sub="دیروز · از میلی" end={<span>−<M m={26} /></span>} endSub={<span className="gold xs">+۰٫۳ میلی پاداش</span>} />
+      <Row start={<span className="badge-ic"><Smartphone size={19} /></span>} title="اسنپ" sub="۱۸ آبان · از تتر" end={<span>−<M m={12} /></span>} />
     </>
   );
 }
@@ -379,7 +379,7 @@ export function Profile() {
         </div>
         <Row start={<span className="badge-ic"><Lock size={19} /></span>} title="امنیت و ورود" chevron onClick={() => go('settings', { kind: 'security' })} />
         <Row start={<span className="badge-ic"><Bell size={19} /></span>} title="اعلان‌ها" chevron onClick={() => go('settings', { kind: 'notif' })} />
-        <Row start={<span className="badge-ic"><UserPlus size={19} /></span>} title="دعوت از دوستان" sub="برای هر دعوت ۱۰۰ میلی هدیه" chevron onClick={() => go('settings', { kind: 'invite' })} />
+        <Row start={<span className="badge-ic"><UserPlus size={19} /></span>} title="دعوت از دوستان" sub="برای هر دعوت ۳۰ میلی هدیه" chevron onClick={() => go('settings', { kind: 'invite' })} />
         <Row start={<span className="badge-ic"><HelpCircle size={19} /></span>} title="پشتیبانی" sub="پاسخ‌گویی شبانه‌روزی" chevron onClick={() => go('settings', { kind: 'support' })} />
         <Row start={<span className="badge-ic"><Info size={19} /></span>} title="درباره میلی" sub="هر میلی، یک میلی‌گرم طلای ۱۸ عیار" chevron onClick={() => go('settings', { kind: 'about' })} />
         <Row start={<span className="badge-ic"><LogOut size={19} /></span>} title="خروج از حساب" chevron onClick={() => go('welcome')} />
