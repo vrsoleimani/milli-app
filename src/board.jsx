@@ -4,10 +4,11 @@ import './styles.css';
 import { Ctx, staticCtx, StatusBar, TabBar } from './ui.jsx';
 import { Home, Assets, Services, Card, Profile } from './tabs.jsx';
 import * as S from './screens.jsx';
-import { PayHub, Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { PayHub } from './pay.jsx';
 import { Pnl } from './pnl.jsx';
 import {
-  Buy, Send, Request, Scan, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
+  Buy, Send, Request, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
 
 function Phone({ children, tall, tab, over, label, note, bare }) {
@@ -52,13 +53,19 @@ function Board() {
         <Phone tall label="روند · میلی" note="خط صفر یعنی نگه‌داشتن میلی"><Pnl p={{ view: 'trend', range: 'c' }} /></Phone>
       </section>
 
+      <h2>پرداخت (تازه)</h2>
+      <section>
+        <Phone bare label="۱ · پرداخت · اسکن" note="دکمه وسط نوار مستقیم اسکنر را باز می‌کند؛ فقط مخاطب‌ها، انتقال و درخواست در برگه پایین، بدون اسکرول"><PayHub /></Phone>
+        <Phone bare label="۲ · پرداخت · QR من" note="روی دوم همان صفحه: کارت طلایی برای دریافت میلی"><PayHub mode="qr" /></Phone>
+        <Phone label="۳ · پیشنهاد دنگ بعد از پرداخت" note="دنگ از این صفحه و از «درخواست» باز می‌شود، نه از صفحه پرداخت"><Success amount={45} sub="به کافه لمیز" reward={0.9} split={{ title: 'کافه لمیز', total: 45 }} /></Phone>
+      </section>
+
       <h2>تغییرهای تازه (در انتظار تأیید)</h2>
       <section>
-        <Phone tall label="۱ · پرداخت و انتقال" note="دکمه وسط نوار: اسکن، ارسال، درخواست، دنگ، هدیه، QR من، قبض"><PayHub /></Phone>
         <Phone tall label="۵ · دستیار میلی" note="پرسش و انجام کار با گفتگو؛ هر کار با تأیید کاربر"><Assistant /></Phone>
         <Phone tall label="۴ · تقسیم حقوق" note="درصد میلی، قلک و صندوق در روز واریز"><SalarySplit /></Phone>
         <Phone tall label="۳ · خرده‌پول به میلی" note="گرد کردن خریدهای کارت، با ضریب"><RoundUp /></Phone>
-        <Phone tall label="۹ · دنگ" note="تقسیم مساوی و درخواست از چند نفر"><Split /></Phone>
+        <Phone tall label="۹ · دنگ" note="تقسیم مساوی و درخواست از چند نفر؛ دنگ‌های باز در ردیف بالای صفحه"><Split /></Phone>
       </section>
       <section>
         <Phone tall label="۸ · تراکنش‌ها و خرج" note="نمودار ماهانه، دسته‌بندی، جستجو، معادل تومانی"><S.History /></Phone>
@@ -78,7 +85,6 @@ function Board() {
 
       <h2>پرداخت و انتقال</h2>
       <section>
-        <Phone bare label="۱ · اسکن QR" note="از دکمه پرداخت وسط نوار"><Scan /></Phone>
         <Phone label="۲ · تأیید پرداخت" note="پرداخت از میلی، پاداش ۲٪"><Pay /></Phone>
         <Phone label="۳ · پرداخت انجام شد"><Success /></Phone>
         <Phone label="ارسال میلی به دوست"><Send preset="300" /></Phone>

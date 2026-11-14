@@ -358,7 +358,7 @@ export function Profile() {
         ))}
       </div>
 
-      <button className="card gold mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('myqr')}>
+      <button className="card gold mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('payhub', { mode: 'qr' })}>
         <span className="badge-ic" style={{ background: 'rgba(251,185,24,.18)' }}><QrCode size={22} className="gold" /></span>
         <span className="grow col gap4">
           <span className="h3">QR من</span>

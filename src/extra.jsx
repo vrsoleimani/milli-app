@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
-  QrCode, Send as SendIcon, HandCoins, Users, Gift, Receipt, ScanLine, ChevronLeft, ChevronDown, Sparkles, ArrowUp,
-  Store, Check, Wallet, CalendarClock, PiggyBank, Coins, Snowflake, PieChart,
+  Send as SendIcon, Users, ChevronDown, Sparkles, ArrowUp, Check, Wallet, CalendarClock, PiggyBank, Coins, Snowflake,
+  PieChart,
 } from 'lucide-react';
 import {
-  useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, M, Alt, SectionTitle,
+  useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, M,
 } from './ui.jsx';
 import { PRICE, contacts, backingLabels } from './data.js';
 import { fa } from './format.js';
@@ -43,64 +43,12 @@ export function SourceRow({ value, onChange }) {
   );
 }
 
-/* ───────────── پرداخت و انتقال (دکمه وسط نوار) ───────────── */
-export function PayHub() {
-  const { go, state } = useApp();
-  const tiles = [
-    ['انتقال', SendIcon, () => go('send')], ['درخواست', HandCoins, () => go('request')], ['دنگ', Users, () => go('split')],
-    ['هدیه میلی', Gift, () => go('send', { gift: true })], ['QR من', QrCode, () => go('myqr')], ['قبض و شارژ', Receipt, () => go('bills')],
-  ];
-  return (
-    <>
-      <NavBar title="پرداخت و انتقال" />
-      <button className="card gold row" style={{ width: '100%', textAlign: 'right', padding: 20 }} onClick={() => go('scan')}>
-        <span className="badge-ic" style={{ background: 'var(--gold)', color: 'var(--gold-ink)', width: 56, height: 56, borderRadius: 18 }}><ScanLine size={26} /></span>
-        <span className="grow col gap4">
-          <span className="h2">اسکن و پرداخت</span>
-          <span className="small muted">کد QR فروشگاه را اسکن کن و با میلی بپرداز</span>
-        </span>
-        <ChevronLeft size={18} className="faint" />
-      </button>
-
-      <div className="grid4 mt24" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        {tiles.map(([l, Ic, fn]) => (
-          <button key={l} className="tile" onClick={fn}><span className="ic"><Ic size={23} strokeWidth={1.7} /></span>{l}</button>
-        ))}
-      </div>
-
-      <SectionTitle title="مخاطب‌های اخیر" />
-      <div className="hscroll">
-        {contacts.map((c) => (
-          <button key={c.id} className="col gap8" style={{ alignItems: 'center', minWidth: 60 }} onClick={() => go('send', { to: c.id })}>
-            <Avatar c={c} />
-            <span className="xs">{c.name.split(' ')[0]}</span>
-          </button>
-        ))}
-      </div>
-
-      <SectionTitle title="دنگ‌های باز" link="دنگ تازه" onLink={() => go('split')} />
-      <div className="card" style={{ padding: '4px 18px' }}>
-        {state.splits.map((s) => (
-          <Row key={s.id} start={<span className="badge-ic"><Users size={19} /></span>} title={s.title}
-            sub={`${fa(s.paid)} از ${fa(s.people)} نفر پرداخت کرده‌اند`} end={<M m={s.total} />}
-            endSub={<span className="xs muted">سهم هر نفر <M m={Math.round(s.total / (s.people + 1))} /></span>} />
-        ))}
-      </div>
-
-      <button className="card soft mt16 row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('merchants')}>
-        <span className="badge-ic" style={{ background: '#000' }}><Store size={19} /></span>
-        <span className="grow col gap4"><span className="h3">پذیرنده‌های نزدیک</span><span className="xs muted">تا ۳٪ پاداش با پرداخت QR</span></span>
-        <ChevronLeft size={18} className="faint" />
-      </button>
-    </>
-  );
-}
-
 /* ───────────── دنگ ───────────── */
-export function Split() {
-  const { act, unit } = useApp();
-  const [raw, setRaw] = useState('1200');
-  const [title, setTitle] = useState('شام پنجشنبه');
+export function Split({ title: title0, total: total0 }) {
+  const { act, unit, state } = useApp();
+  const open = state.splits || [];
+  const [raw, setRaw] = useState(total0 ? String(Math.round(unit === 'milli' ? total0 : total0 * PRICE)) : '1200');
+  const [title, setTitle] = useState(title0 || 'شام پنجشنبه');
   const [sel, setSel] = useState(['sara', 'reza', 'maryam']);
   const onKey = (k) => {
     if (k === 'del') return setRaw((s) => s.slice(0, -1));
@@ -112,8 +60,20 @@ export function Split() {
   const share = sel.length ? total / (sel.length + 1) : 0;
   const tg = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   return (
-    <>
+    <div className="split-pg">
       <NavBar title="دنگ" />
+      {open.length > 0 && (
+        <div className="split-open">
+          <span className="badge-ic"><Users size={17} className="gold" /></span>
+          <span className="grow col gap4">
+            <span className="h3">دنگ باز · {open[0].title}</span>
+            <span className="xs muted">
+              {fa(open[0].paid)} از {fa(open[0].people)} نفر پرداخت کرده‌اند{open.length > 1 ? ` · و ${fa(open.length - 1)} دنگ دیگر` : ''}
+            </span>
+          </span>
+          <span className="h3"><M m={open[0].total} /></span>
+        </div>
+      )}
       <div className="field"><label>بابت</label><input className="v" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} /></div>
       <div className="amount-entry">
         <div className="val num">{fa(Number(raw || 0))}<small>{unit === 'milli' ? 'میلی' : 'تومان'}</small></div>
@@ -139,7 +99,7 @@ export function Split() {
         onClick={() => act('split', { title: title.trim(), total: Math.round(total), people: sel.length })}>
         ارسال درخواست به {fa(sel.length)} نفر
       </button>
-    </>
+    </div>
   );
 }
 

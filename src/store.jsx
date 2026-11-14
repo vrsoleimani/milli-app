@@ -75,7 +75,7 @@ function apply(s, kind, p) {
       const d = debit(s, p.source, p.milli);
       if (!d) return NO;
       const t = addTx({ ...d, milli: round(d.milli + p.reward), rewardsMonth: s.rewardsMonth + p.reward }, txOf(p.to, `پرداخت QR · از ${srcName(s, p.source)} · الان`, -p.milli, 'qr'));
-      return { s: t, ok: { title: 'پرداخت انجام شد', amount: p.milli, sub: `به ${p.to}`, reward: p.reward } };
+      return { s: t, ok: { title: 'پرداخت انجام شد', amount: p.milli, sub: `به ${p.to}`, reward: p.reward, split: { title: p.to, total: p.milli } } };
     }
     case 'payItem': {
       const m = round(p.milli, 1);

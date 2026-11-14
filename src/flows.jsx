@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Wallet, Check, QrCode, Image, Flashlight, Search, Share2, Zap, Flame, Droplet, Smartphone,
-  ArrowUpDown, Calendar, Repeat, X, Gift, ChevronLeft, ChevronDown, Store, Info,
+  Wallet, Check, Search, Share2, Zap, Flame, Droplet, Smartphone, ArrowUpDown, Calendar, X, Gift, ChevronDown, Store,
+  Info, Users,
 } from 'lucide-react';
-import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, Logo, M, Alt } from './ui.jsx';
+import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, M } from './ui.jsx';
 import { PRICE, contacts, bills, UNITS, initialState, FEES, MILLI_MIN_FEE } from './data.js';
 import { fa } from './format.js';
 import { SourceRow, sourceBalance } from './extra.jsx';
@@ -119,7 +119,7 @@ export function Send({ to = 'sara', preset = '', gift: giftInit = false }) {
 
 /* ───────────── درخواست میلی ───────────── */
 export function Request({ preset = '' }) {
-  const { unit, act } = useApp();
+  const { unit, act, go } = useApp();
   const [sel, setSel] = useState('reza');
   const [raw, , onKey] = useAmount(preset);
   const c = contacts.find((x) => x.id === sel);
@@ -136,41 +136,13 @@ export function Request({ preset = '' }) {
       </div>
       <div className="small muted mt16" style={{ textAlign: 'center' }}>از {c.name}</div>
       <AmountDisplay raw={raw} unit={unit} />
-      <div className="segment"><button className="on">یک نفر</button><button>تقسیم بین چند نفر</button></div>
+      <div className="segment"><button className="on">یک نفر</button><button onClick={() => go('split')}>تقسیم بین چند نفر</button></div>
       <Keypad onKey={onKey} />
       <div className="row mt12" style={{ gap: 10 }}>
         <button className="btn ghost" style={{ width: 64, flex: 'none' }}><Share2 size={20} /></button>
         <button className="btn primary" onClick={() => act('request', { to: c.name })}>ارسال درخواست</button>
       </div>
     </>
-  );
-}
-
-/* ───────────── اسکن QR ───────────── */
-export function Scan() {
-  const { back, go } = useApp();
-  return (
-    <div style={{ position: 'absolute', inset: 'var(--sb) 0 0 0' }}>
-      <div className="scanner" />
-      <button className="viewfinder" onClick={() => go('pay')} aria-label="اسکن کد فروشگاه">
-        <FakeQR />
-        <i /><i /><i /><i /><span className="scanline" />
-      </button>
-      <div className="navbar" style={{ position: 'relative', padding: '8px 20px' }}>
-        <button className="icon-btn" style={{ background: 'rgba(255,255,255,.12)' }} onClick={back}><X size={20} /></button>
-        <span className="title">پرداخت با میلی</span>
-        <button className="icon-btn" style={{ background: 'rgba(255,255,255,.12)' }}><Flashlight size={19} /></button>
-      </div>
-      <div style={{ position: 'absolute', top: 160, width: '100%', textAlign: 'center' }} className="h3">کد QR فروشگاه را اسکن کن</div>
-      <div style={{ position: 'absolute', top: 520, width: '100%', textAlign: 'center' }} className="small muted">کافه لمیز · پذیرنده میلی</div>
-      <div style={{ position: 'absolute', bottom: 34, left: 20, right: 20 }}>
-        <div className="segment" style={{ background: 'rgba(30,30,30,.9)' }}>
-          <button className="on"><span className="row gap8" style={{ justifyContent: 'center' }}><QrCode size={16} />اسکن</span></button>
-          <button onClick={() => go('myqr')}>QR من</button>
-          <button><span className="row gap8" style={{ justifyContent: 'center' }}><Image size={16} />گالری</span></button>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -223,7 +195,7 @@ export function Pay() {
 }
 
 /* ───────────── موفقیت ───────────── */
-export function Success({ title = 'پرداخت انجام شد', amount, toman, qty, qtyUnit, sub = '', reward = 0, hideAmount, done }) {
+export function Success({ title = 'پرداخت انجام شد', amount, toman, qty, qtyUnit, sub = '', reward = 0, hideAmount, done, split }) {
   const { go } = useApp();
   return (
     <div className="col" style={{ alignItems: 'center', paddingTop: 110, minHeight: '100%' }}>
@@ -240,7 +212,8 @@ export function Success({ title = 'پرداخت انجام شد', amount, toman,
         </div>
       ) : null}
       <div style={{ flex: 1 }} />
-      <button className="btn primary mt32" onClick={() => (done ? done() : go('tab:home'))}>بازگشت به میلی</button>
+      {split && <button className="btn ghost mt32" onClick={() => go('split', split)}><Users size={18} />دنگ کردن این پرداخت</button>}
+      <button className={`btn primary ${split ? 'mt12' : 'mt32'}`} onClick={() => (done ? done() : go('tab:home'))}>بازگشت به میلی</button>
     </div>
   );
 }

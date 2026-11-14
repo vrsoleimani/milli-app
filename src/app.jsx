@@ -5,10 +5,11 @@ import { StatusBar, TabBar } from './ui.jsx';
 import { Provider } from './store.jsx';
 import { Home, Assets, Services, Card, Profile } from './tabs.jsx';
 import {
-  Buy, Send, Request, Scan, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
+  Buy, Send, Request, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
 import * as S from './screens.jsx';
-import { PayHub, Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { Split, Assistant, SalarySplit, RoundUp } from './extra.jsx';
+import { PayHub } from './pay.jsx';
 import { Pnl } from './pnl.jsx';
 
 const TABS = { home: Home, assets: Assets, services: Services, card: Card };
@@ -18,8 +19,8 @@ const SCREENS = {
   onbPhone: () => <OnbPhone />,
   onbGift: () => <OnbGift />,
   profile: () => <Profile />,
-  payhub: () => <PayHub />,
-  split: () => <Split />,
+  payhub: (p) => <PayHub mode={p.mode} />,
+  split: (p) => <Split title={p.title} total={p.total} />,
   assistant: () => <Assistant />,
   salary: () => <SalarySplit />,
   roundup: () => <RoundUp />,
@@ -27,7 +28,7 @@ const SCREENS = {
   sell: () => <S.Sell />,
   send: (p) => <Send to={p.to} preset={p.preset} gift={p.gift} />,
   request: () => <Request />,
-  scan: () => <Scan />,
+  scan: () => <PayHub />,
   pay: () => <Pay />,
   success: (p) => <Success {...p} />,
   bills: () => <Bills />,
@@ -65,7 +66,7 @@ const SCREENS = {
   merchants: () => <S.Merchants />,
   pnl: (p) => <Pnl p={p} />,
 };
-const BARE = new Set(['scan']);
+const BARE = new Set(['scan', 'payhub']);
 
 function App() {
   return (
