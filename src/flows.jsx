@@ -4,7 +4,7 @@ import {
   ArrowUpDown, Calendar, Repeat, X, Gift, ChevronLeft, ChevronDown, Store,
 } from 'lucide-react';
 import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, Logo, M, Alt } from './ui.jsx';
-import { PRICE, contacts, bills } from './data.js';
+import { PRICE, contacts, bills, UNITS, initialState } from './data.js';
 import { fa } from './format.js';
 import { SourceRow, sourceBalance } from './extra.jsx';
 
@@ -223,14 +223,15 @@ export function Pay() {
 }
 
 /* ───────────── موفقیت ───────────── */
-export function Success({ title = 'پرداخت انجام شد', amount, toman, sub = '', reward = 0, hideAmount, done }) {
+export function Success({ title = 'پرداخت انجام شد', amount, toman, qty, qtyUnit, sub = '', reward = 0, hideAmount, done }) {
   const { go } = useApp();
   return (
     <div className="col" style={{ alignItems: 'center', paddingTop: 110, minHeight: '100%' }}>
       <span className="success-ring"><Check size={46} strokeWidth={3} /></span>
       <span className="h1 mt32">{title}</span>
       {!hideAmount && amount != null && <span className="big-num num mt16">{fa(amount, 1)}<small>میلی</small></span>}
-      {!hideAmount && toman != null && <span className="big-num num mt16">{fa(toman)}<small>تومان</small></span>}
+      {!hideAmount && qty != null && <span className="big-num num mt16"><bdi>{qty}</bdi><small><bdi>{qtyUnit}</bdi></small></span>}
+      {!hideAmount && qty == null && toman != null && <span className="big-num num mt16">{fa(toman)}<small>تومان</small></span>}
       <span className="small muted mt8">{sub}</span>
       {reward ? (
         <div className="card gold mt32 row" style={{ width: '100%' }}>
@@ -302,27 +303,48 @@ function convOptions(state) {
     ...state.assets.map((a) => ({ id: a.id, name: a.name, color: a.color, group: a.group })),
   ];
 }
-// واحد نمایش هر مورد: میلی همیشه میلی، کیف پول ریالی همیشه تومان، بقیه طبق کلید واحد
-const dispUnit = (id, unit) => (id === 'milli' ? 'milli' : id === 'rial' ? 'toman' : unit);
-const toUnit = (toman, u) => (u === 'milli' ? toman / PRICE : toman);
+// واحد خود هر مورد: میلی، تومان یا واحد دارایی (گرم، BTC، سهم و …)
+function unitOf(id) {
+  if (id === 'milli') return { u: 'میلی', price: PRICE, dec: 2 };
+  const x = UNITS[id];
+  if (!x) return { u: 'تومان', price: 1, dec: 0 };
+  const a = initialState.assets.find((y) => y.id === id);
+  return { u: x.u, price: a.value / x.qty, dec: x.dec };
+}
+const LATIN = /^[A-Z]+$/;
+const P = '۰۱۲۳۴۵۶۷۸۹';
+// نمایش ورودی خام صفحه‌کلید با جداکننده هزارگان
+function fmtRaw(raw) {
+  if (!raw) return '۰';
+  const [i, f] = raw.split('.');
+  return fa(Number(i || 0)) + (f != null ? '٫' + f.replace(/\d/g, (d) => P[d]) : '');
+}
+const qtyText = (q, dec) => fa(q, Math.abs(q) >= 1000 ? 0 : q && Math.abs(q) < 1 ? dec : Math.min(dec, 2));
 
-function ConvSide({ label, id, other, onPick, children }) {
+function ConvSide({ label, id, other, onPick, value, unitLabel, sub, gold, red }) {
   const { state, hidden } = useApp();
   const [open, setOpen] = useState(false);
   const opts = convOptions(state);
   const cur = opts.find((o) => o.id === id);
-  const bal = (x) => (hidden ? '••••' : x === 'milli' ? `${fa(state.milli)} میلی` : `${fa(Math.round(sourceBalance(state, x)))} تومان`);
+  const bal = (x) => {
+    if (hidden) return '••••';
+    const { u, price, dec } = unitOf(x);
+    return <bdi>{qtyText(sourceBalance(state, x) / price, dec)} {u}</bdi>;
+  };
   return (
-    <div className="card">
-      <div className="between small muted"><span>{label}</span><span className="num">موجودی {bal(id)}</span></div>
-      <div className="between mt12">
-        <button className="pill" style={{ height: 40 }} onClick={() => setOpen(!open)}>
-          <Diamond color={cur.color} size={10} />{cur.name}<ChevronDown size={15} className="gold" />
+    <div className="card conv-side">
+      <div className="between xs muted"><span>{label}</span><span className="num">موجودی {bal(id)}</span></div>
+      <div className="between mt8">
+        <button className="pill" style={{ height: 36 }} onClick={() => setOpen(!open)}>
+          <Diamond color={cur.color} size={9} />{cur.name}<ChevronDown size={14} className="gold" />
         </button>
-        {children}
+        <span className="col" style={{ alignItems: 'flex-end', gap: 2, minWidth: 0 }}>
+          <span className={`conv-num num ${gold ? 'gold' : ''} ${red ? 'down' : ''}`}><bdi>{value}</bdi><small><bdi>{unitLabel}</bdi></small></span>
+          <span className="xs muted num"><bdi>{sub}</bdi></span>
+        </span>
       </div>
       {open && (
-        <div className="source-list" style={{ maxHeight: 260, overflowY: 'auto' }}>
+        <div className="source-list conv-menu">
           {opts.map((o) => {
             const off = o.id === other;
             return (
@@ -342,74 +364,67 @@ function ConvSide({ label, id, other, onPick, children }) {
 }
 
 export function Convert({ from: fromInit, to: toInit }) {
-  const { state, unit, act } = useApp();
+  const { state, act } = useApp();
   const f0 = fromInit || 'btc';
   const [from, setFrom] = useState(f0);
   const [to, setTo] = useState(toInit || (f0 === 'milli' ? 'silver' : 'milli'));
   const [raw, setRaw, onKey] = useAmount('');
   const [spin, setSpin] = useState(0);
-  const fu = dispUnit(from, unit), tu = dispUnit(to, unit);
+  const fu = unitOf(from), tu = unitOf(to);
   const n = Number(raw || 0);
-  const toman = fu === 'milli' ? n * PRICE : n;
-  const out = toUnit(toman, tu);
+  const toman = n * fu.price;
+  const out = toman / tu.price;
   const bal = sourceBalance(state, from);
   const short = toman > bal + 0.5;
-  const unitName = (u) => (u === 'milli' ? 'میلی' : 'تومان');
-  const shown = raw ? (raw.endsWith('.') ? fa(Math.floor(n)) + '٫' : fa(n, 2)) : '۰';
-  const setPct = (pc) => {
-    const v = toUnit(bal * pc, fu);
-    setRaw(String(fu === 'milli' ? Math.floor(v * 100) / 100 : Math.floor(v)));
-  };
-  // با عوض شدن واحد مبدا، مبلغ وارد شده هم‌ارزش می‌ماند
+  const names = Object.fromEntries(convOptions(state).map((o) => [o.id, o.name]));
+  const fix = (v, dec) => String(Math.floor(v * 10 ** dec) / 10 ** dec);
+  const setPct = (pc) => setRaw(fix((bal * pc) / fu.price, fu.dec));
+  // با عوض شدن مبدا، ارزش مبلغ وارد شده ثابت می‌ماند
   const reUnit = (newFrom) => {
-    const nu = dispUnit(newFrom, unit);
-    if (!raw || nu === fu) return;
-    const v = toUnit(toman, nu);
-    setRaw(String(nu === 'milli' ? Math.round(v * 100) / 100 : Math.round(v)));
+    if (!raw) return;
+    const nu = unitOf(newFrom);
+    setRaw(fix(toman / nu.price, nu.dec));
   };
   const pickFrom = (id) => { reUnit(id); setFrom(id); };
   const swap = () => { reUnit(to); setFrom(to); setTo(from); setSpin((x) => x + 180); };
-  const names = Object.fromEntries(convOptions(state).map((o) => [o.id, o.name]));
-  const rate = from === 'milli' || to === 'milli'
-    ? `هر میلی ${fa(PRICE)} تومان`
-    : 'به ارزش لحظه‌ای بازار';
-  const outText = tu === 'milli' ? fa(out, out < 100 ? 1 : 0) : fa(Math.round(out));
+  const eq = (t) => (to === 'milli' || from === 'milli' ? `≈ ${fa(Math.round(t))} تومان` : `≈ ${fa(t / PRICE, 1)} میلی`);
+  const named = (u, id) => `${u}${LATIN.test(u) || id === 'milli' || id === 'rial' ? '' : ` ${names[id]}`}`;
+  // نرخ: واحد بزرگ‌تر به واحد کوچک‌تر (مثلاً هر BTC به میلی)
+  const [big, small] = fu.price >= tu.price ? [fu, tu] : [tu, fu];
+  const perBig = (b) => (b.u === 'تومان' ? '۱ میلیون تومان' : `هر ${b.u}`);
+  const bigBase = big.u === 'تومان' ? 1e6 : 1;
+  const rate = <bdi>{perBig(big)} ≈ {qtyText((bigBase * big.price) / small.price, small.dec)} {small.u}</bdi>;
+  const outText = qtyText(out, tu.dec);
   return (
-    <>
-      <NavBar title="تبدیل" end={<UnitFlip />} />
-      <ConvSide label="از" id={from} other={to} onPick={pickFrom}>
-        <span className="col" style={{ alignItems: 'flex-end', gap: 2 }}>
-          <span className={`h1 num ${short ? 'down' : ''}`}>{shown}</span>
-          <span className="xs muted">{unitName(fu)}</span>
-        </span>
-      </ConvSide>
-      <div style={{ display: 'grid', placeItems: 'center', margin: '-14px 0', position: 'relative', zIndex: 2 }}>
+    <div className="conv">
+      <NavBar title="تبدیل" />
+      <ConvSide label="از" id={from} other={to} onPick={pickFrom}
+        value={fmtRaw(raw)} unitLabel={fu.u} sub={eq(toman)} red={short} />
+      <div style={{ display: 'grid', placeItems: 'center', margin: '-12px 0', position: 'relative', zIndex: 2 }}>
         <button className="icon-btn" aria-label="جابه‌جایی مبدا و مقصد" onClick={swap}
-          style={{ background: 'var(--gold)', color: '#000', border: '4px solid #000', width: 48, height: 48, transform: `rotate(${spin}deg)`, transition: 'transform .3s' }}>
-          <ArrowUpDown size={20} />
+          style={{ background: 'var(--gold)', color: '#000', border: '4px solid #000', width: 42, height: 42, transform: `rotate(${spin}deg)`, transition: 'transform .3s' }}>
+          <ArrowUpDown size={18} />
         </button>
       </div>
-      <ConvSide label="به" id={to} other={from} onPick={setTo}>
-        <span className="col" style={{ alignItems: 'flex-end', gap: 2 }}>
-          <span className={`h1 num ${to === 'milli' ? 'gold' : ''}`}>{outText}</span>
-          <span className="xs muted">{unitName(tu)}</span>
-        </span>
-      </ConvSide>
-      <div className="row mt12" style={{ gap: 8 }}>
+      <ConvSide label="به" id={to} other={from} onPick={setTo}
+        value={outText} unitLabel={tu.u} sub={eq(toman)} gold={to === 'milli'} />
+      <div className="row mt8" style={{ gap: 8 }}>
         {[['۲۵٪', 0.25], ['۵۰٪', 0.5], ['همه', 1]].map(([x, v]) => (
-          <button key={x} className="pill grow" style={{ justifyContent: 'center' }} onClick={() => setPct(v)}>{x}</button>
+          <button key={x} className="pill sm grow" style={{ justifyContent: 'center' }} onClick={() => setPct(v)}>{x}</button>
         ))}
       </div>
-      <div className="card soft mt12" style={{ padding: '10px 14px' }}>
-        <div className="between xs"><span className="muted">نرخ</span><span className="num">{rate}</span></div>
-        <div className="between xs mt8"><span className="muted">زمان انجام</span><span>فوری</span></div>
+      <div className="between xs mt12" style={{ padding: '0 4px' }}>
+        <span className="muted">نرخ</span><span className="num">{rate}</span>
+      </div>
+      <div className="between xs mt8" style={{ padding: '0 4px' }}>
+        <span className="muted">زمان انجام</span><span>فوری</span>
       </div>
       <Keypad onKey={onKey} />
-      <button className="btn primary mt12" disabled={!n || short}
-        onClick={() => act('convert', { from, to, toman: Math.round(toman), milli: fu === 'milli' ? n : undefined })}>
-        {short ? 'موجودی کافی نیست' : n ? `تبدیل به ${outText} ${unitName(tu)} ${names[to]}`.replace('میلی میلی', 'میلی') : 'تبدیل'}
+      <button className="btn primary mt8" disabled={!n || short}
+        onClick={() => act('convert', { from, to, toman: Math.round(toman), milli: from === 'milli' ? n : undefined, outText, outUnit: named(tu.u, to) })}>
+        {short ? 'موجودی کافی نیست' : n ? `تبدیل به ${outText} ${named(tu.u, to)}` : 'تبدیل'}
       </button>
-    </>
+    </div>
   );
 }
 

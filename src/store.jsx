@@ -113,7 +113,7 @@ function apply(s, kind, p) {
         s: addTx(n, txOf(`تبدیل ${name(p.from)} به ${name(p.to)}`, 'تبدیل · الان', sign, p.from === 'milli' ? 'sell' : 'buy')),
         ok: p.to === 'milli'
           ? { title: 'تبدیل انجام شد', amount: m, sub: `از ${name(p.from)}` }
-          : { title: 'تبدیل انجام شد', toman: t, sub: `از ${name(p.from)} به ${name(p.to)}` },
+          : { title: 'تبدیل انجام شد', toman: t, qty: p.outText, qtyUnit: p.outUnit, sub: `از ${name(p.from)} · ≈ ${fa(t)} تومان` },
       };
     }
     case 'jar':

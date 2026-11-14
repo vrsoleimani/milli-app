@@ -79,3 +79,15 @@ export const backingLabels = {
   income: { name: 'صندوق درآمد ثابت', color: '#5470ff' },
   silver: { name: 'نقره', color: '#c9ced6' },
 };
+
+// واحد هر دارایی برای نمایش مقدار (از داده نمونه: ارزش ÷ مقدار = قیمت هر واحد)
+export const UNITS = {
+  silver: { qty: 410, u: 'گرم', dec: 1 },
+  coin: { qty: 1, u: 'ربع‌سکه', dec: 2 },
+  copper: { qty: 2.8, u: 'کیلوگرم', dec: 2 },
+  goldfund: { qty: 48000, u: 'واحد', dec: 0 },
+  btc: { qty: 0.018, u: 'BTC', dec: 8 },
+  eth: { qty: 0.35, u: 'ETH', dec: 6 },
+  usdt: { qty: 126, u: 'USDT', dec: 2 },
+  foolad: { qty: 1000, u: 'سهم', dec: 0 },
+};
