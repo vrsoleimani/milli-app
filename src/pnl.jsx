@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Download, Info, TrendingUp } from 'lucide-react';
 import { useApp, NavBar, ViewToggles, Diamond, AssetIcon, SectionTitle } from './ui.jsx';
-import { PRICE } from './data.js';
+import { PRICE, UNITS, initialState } from './data.js';
 import { fa, pct, HIDDEN } from './format.js';
 
 /* ───────────── داده نمونه سود و زیان (ساختگی) ─────────────
@@ -34,10 +34,11 @@ const REALIZED = { btc: 0.3, foolad: 0.2, silver: 0.15 }; // سهم فروخته
 const MILLI_YIELD = [1, 7, 30, 90, 330, 420, 50];
 const MILLI_REWARD = [9, 58, 250, 720, 2650, 4100, 410];
 const MILLI_FEE = [0, -5, -22, -70, -260, -480, -35];
+const unitPrice = (id) => { const a = initialState.assets.find((x) => x.id === id); return a.value / UNITS[id].qty; };
 const UNIT = {
-  milli: ['هر میلی', PRICE], jars: ['هر میلی', PRICE], silver: ['هر گرم', 15122], coin: ['هر عدد', 21000000],
-  copper: ['هر کیلوگرم', 750000], goldfund: ['هر واحد', 1010], income: ['هر واحد', 10000], btc: ['هر بیت‌کوین', 1777777778],
-  eth: ['هر اتریوم', 28000000], usdt: ['هر تتر', 98413], foolad: ['هر سهم', 8420],
+  milli: ['هر میلی', PRICE], jars: ['هر میلی', PRICE], silver: ['هر گرم', unitPrice('silver')], coin: ['هر عدد', unitPrice('coin')],
+  copper: ['هر کیلوگرم', unitPrice('copper')], goldfund: ['هر واحد', unitPrice('goldfund')], income: ['هر واحد', 10000], btc: ['هر بیت‌کوین', unitPrice('btc')],
+  eth: ['هر اتریوم', unitPrice('eth')], usdt: ['هر تتر', unitPrice('usdt')], foolad: ['هر سهم', unitPrice('foolad')],
 };
 const GROUP_OF = { فلزات: 'سکه و فلزات', صندوق: 'صندوق‌ها', رمزارز: 'رمزارز', سهام: 'سهام' };
 const GROUP_COLOR = { میلی: '#fbb918', 'قلک‌ها': '#e0a100', 'صندوق‌ها': '#2a49e8', رمزارز: '#f7931a', سهام: '#3b82f6', 'سکه و فلزات': '#c9ced6' };

@@ -3,6 +3,7 @@ import {
   Bell, ScanLine, Eye, EyeOff, ChevronDown, ChevronRight, ChevronLeft, PieChart,
   LayoutGrid, CreditCard, User, QrCode, Sparkles, ArrowDownLeft, Gift, Receipt, Plus, Delete, ArrowUpRight, Minus, ShoppingBag,
 } from 'lucide-react';
+import { PRICE } from './data.js';
 import { fa, money, milliIn, pct, HIDDEN } from './format.js';
 import { initialState } from './data.js';
 
@@ -156,8 +157,8 @@ export function BigAmount({ milli, toman }) {
   const { unit, hidden } = useApp();
   if (hidden) return <div className="big-num">{HIDDEN}</div>;
   const isMilli = unit === 'milli';
-  const m = milli ?? toman / 7480;
-  const t = toman ?? milli * 7480;
+  const m = milli ?? toman / PRICE;
+  const t = toman ?? milli * PRICE;
   return (
     <div className="big-num num">
       {isMilli ? fa(Math.round(m)) : fa(Math.round(t))}

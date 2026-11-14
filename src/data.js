@@ -1,6 +1,8 @@
 // داده نمونه اپ جامع میلی (ساختگی، برای نمایش)
-export const PRICE = 7480; // قیمت هر میلی به تومان
-export const PRICE_CHANGE = 0.8; // درصد تغییر ۲۴ ساعت
+// قیمت‌ها: بازار ایران، شنبه ۲۳ آبان ۱۴۰۵ حدود ساعت ۱۲
+// میلی: milli.gold · رمزارز: میانه صرافی‌های ایرانی · ربع‌سکه، نقره، مس و صندوق طلا: tgju · فولاد: alanchand
+export const PRICE = 24898; // قیمت هر میلی (یک میلی‌گرم طلای ۱۸) به تومان
+export const PRICE_CHANGE = 0.3; // درصد تغییر ۲۴ ساعت
 
 export const user = {
   name: 'علی رضایی',
@@ -17,15 +19,15 @@ export const initialState = {
   rial: 24600000, // کیف پول ریالی به تومان
   rewardsMonth: 186, // پاداش این ماه به میلی
   assets: [
-    { id: 'silver', name: 'نقره', sub: '۴۱۰ گرم', group: 'فلزات', value: 6200000, change: 1.4, color: '#c9ced6' },
-    { id: 'coin', name: 'سکه', sub: 'ربع‌سکه · ۱ عدد', group: 'فلزات', value: 21000000, change: 0.9, color: '#f2c14e' },
-    { id: 'copper', name: 'مس', sub: '۲٫۸ کیلوگرم', group: 'فلزات', value: 2100000, change: -0.6, color: '#c8743f' },
-    { id: 'goldfund', name: 'صندوق طلای میلی', sub: '۴۸٬۰۰۰ واحد', group: 'صندوق', value: 48500000, change: 1.8, color: '#2a49e8' },
+    { id: 'silver', name: 'نقره', sub: '۴۱۰ گرم', group: 'فلزات', value: 187361800, change: -0.2, color: '#c9ced6' },
+    { id: 'coin', name: 'سکه', sub: 'ربع‌سکه · ۱ عدد', group: 'فلزات', value: 72840000, change: 0.5, color: '#f2c14e' },
+    { id: 'copper', name: 'مس', sub: '۲٫۸ کیلوگرم', group: 'فلزات', value: 10166489, change: 0, color: '#c8743f' },
+    { id: 'goldfund', name: 'صندوق طلای میلی', sub: '۴۸٬۰۰۰ واحد', group: 'صندوق', value: 106512000, change: 0, color: '#2a49e8' },
     { id: 'income', name: 'صندوق درآمد ثابت', sub: 'سود روزشمار ۲۰٪ سالانه', group: 'صندوق', value: 60000000, change: 0.1, color: '#5470ff' },
-    { id: 'btc', name: 'بیت‌کوین', sub: '۰٫۰۱۸ BTC', group: 'رمزارز', value: 32000000, change: -3.6, color: '#f7931a' },
-    { id: 'eth', name: 'اتریوم', sub: '۰٫۳۵ ETH', group: 'رمزارز', value: 9800000, change: 2.2, color: '#8c8cf0' },
-    { id: 'usdt', name: 'تتر', sub: '۱۲۶ USDT', group: 'رمزارز', value: 12400000, change: 0.2, color: '#26a17b' },
-    { id: 'foolad', name: 'فولاد مبارکه', sub: '۱٬۰۰۰ سهم', group: 'سهام', value: 8420000, change: -1.1, color: '#3b82f6' },
+    { id: 'btc', name: 'بیت‌کوین', sub: '۰٫۰۱۸ BTC', group: 'رمزارز', value: 328161551, change: -2.5, color: '#f7931a' },
+    { id: 'eth', name: 'اتریوم', sub: '۰٫۳۵ ETH', group: 'رمزارز', value: 180736031, change: -1.7, color: '#8c8cf0' },
+    { id: 'usdt', name: 'تتر', sub: '۱۲۶ USDT', group: 'رمزارز', value: 34220529, change: 0.3, color: '#26a17b' },
+    { id: 'foolad', name: 'فولاد مبارکه', sub: '۲۰٬۰۰۰ سهم', group: 'سهام', value: 10020000, change: 1.2, color: '#3b82f6' },
   ],
   jars: [
     { id: 'home', name: 'خرید خانه', icon: '🏠', saved: 52000, goal: 700000, auto: 'ماهانه ۲۰۰ میلی' },
@@ -80,7 +82,9 @@ export const backingLabels = {
   silver: { name: 'نقره', color: '#c9ced6' },
 };
 
-// واحد هر دارایی برای نمایش مقدار (از داده نمونه: ارزش ÷ مقدار = قیمت هر واحد)
+// واحد هر دارایی (ارزش ÷ مقدار = قیمت روز هر واحد)
+// نقره ۴۵۶٬۹۸۰ ت/گرم · ربع‌سکه ۷۲٬۸۴۰٬۰۰۰ · مس ۳٬۶۳۰٬۸۸۹ ت/کیلو (۱۳٬۳۴۵ دلار در تن × دلار ۲۷۲٬۰۸۵)
+// صندوق طلا ۲٬۲۱۹ ت/واحد (جام طلا) · BTC ۱۸٬۲۳۱٬۱۹۷٬۳۰۳ · ETH ۵۱۶٬۳۸۸٬۶۵۹ · USDT ۲۷۱٬۵۹۲ · فولاد ۵۰۱ ت/سهم
 export const UNITS = {
   silver: { qty: 410, u: 'گرم', dec: 1 },
   coin: { qty: 1, u: 'ربع‌سکه', dec: 2 },
@@ -89,5 +93,5 @@ export const UNITS = {
   btc: { qty: 0.018, u: 'BTC', dec: 8 },
   eth: { qty: 0.35, u: 'ETH', dec: 6 },
   usdt: { qty: 126, u: 'USDT', dec: 2 },
-  foolad: { qty: 1000, u: 'سهم', dec: 0 },
+  foolad: { qty: 20000, u: 'سهم', dec: 0 },
 };

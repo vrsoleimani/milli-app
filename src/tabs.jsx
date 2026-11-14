@@ -124,6 +124,7 @@ export function Assets() {
   const jarsToman = state.jars.reduce((s, j) => s + j.saved, 0) * PRICE; // قلک‌ها هم جزو مجموع دارایی است
   const total = milliToman + jarsToman + state.assets.reduce((s, a) => s + a.value, 0);
   const parts = [{ name: 'میلی', value: milliToman, color: '#fbb918' }, { name: 'قلک‌ها', value: jarsToman, color: '#e0a100' }, ...state.assets];
+  const gsum = (gr) => state.assets.filter((a) => a.group === gr).reduce((s, a) => s + a.value, 0);
   const shown = state.assets.filter((a) => g === 'همه' || a.group === g);
   return (
     <>
@@ -136,7 +137,7 @@ export function Assets() {
           {parts.map((p) => <i key={p.name} style={{ flex: p.value, background: p.color }} />)}
         </div>
         <div className="row mt12" style={{ flexWrap: 'wrap', gap: '6px 14px' }}>
-          {[['میلی', '#fbb918', milliToman], ['قلک‌ها', '#e0a100', jarsToman], ['صندوق‌ها', '#2a49e8', 108500000], ['رمزارز', '#f7931a', 54200000], ['سهام', '#3b82f6', 8420000], ['سکه و فلزات', '#c9ced6', 29300000]].map(([n, c, v]) => (
+          {[['میلی', '#fbb918', milliToman], ['قلک‌ها', '#e0a100', jarsToman], ['صندوق‌ها', '#2a49e8', gsum('صندوق')], ['رمزارز', '#f7931a', gsum('رمزارز')], ['سهام', '#3b82f6', gsum('سهام')], ['سکه و فلزات', '#c9ced6', gsum('فلزات')]].map(([n, c, v]) => (
             <span key={n} className="row xs" style={{ gap: 6 }}><Diamond color={c} size={8} />{n} {fa(Math.round((v / total) * 100))}٪</span>
           ))}
         </div>
