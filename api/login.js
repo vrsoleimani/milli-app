@@ -1,12 +1,20 @@
 // ورود تیم با رمز ثابت (متغیر محیطی TEST_PASSWORD)
-import { ADMIN, ADMIN_TTL, cookie, sameText, sign } from '../lib/auth.js';
+import { ADMIN, ADMIN_TTL, PART, cookie, sameText, sign } from '../lib/auth.js';
 import { loginPage } from '../lib/page.js';
 
 const safeNext = (n) => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : '/');
 
 export default {
   async fetch(request) {
-    if (request.method !== 'POST') return Response.redirect(new URL('/', request.url), 302);
+    if (request.method !== 'POST') {
+      // خروج: /api/login?logout=1 هر دو کوکی را پاک می‌کند
+      const h = new Headers({ location: '/', 'cache-control': 'no-store' });
+      if (new URL(request.url).searchParams.has('logout')) {
+        h.append('set-cookie', cookie(ADMIN, '', 0));
+        h.append('set-cookie', cookie(PART, '', 0));
+      }
+      return new Response(null, { status: 302, headers: h });
+    }
     const form = await request.formData().catch(() => null);
     const next = safeNext(form?.get('next'));
     const ok = process.env.TEST_PASSWORD && sameText(form?.get('password'), process.env.TEST_PASSWORD);

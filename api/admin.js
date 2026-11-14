@@ -6,7 +6,7 @@
 import { ADMIN, parseCookies, verify } from '../lib/auth.js';
 import { loginPage, page } from '../lib/page.js';
 import {
-  DEFAULT_PERSONA, GROUPS, PERSONAS, addCodes, getCodes, listAll, quotas, readJSON, recountQuota,
+  DEFAULT_PERSONA, GROUPS, PERSONAS, CODE_RE, addCodes, getCodes, listAll, purgeCode, quotas, readJSON, recountQuota,
 } from '../lib/store.js';
 
 const PERSONA_FA = { only: 'فقط میلی', multi: 'چند دارایی', new: 'تازه‌وارد با موجودی صفر' };
@@ -92,9 +92,17 @@ ${msg ? `<p class="ok">${esc(msg)}</p>` : ''}
 <li><a href="/api/admin?action=export&scope=p">رویدادهای شرکت‌کننده‌ها (CSV)</a> · <a href="/api/admin?action=export&scope=p&format=json">JSON</a></li>
 <li><a href="/api/admin?action=export&scope=t">رویدادهای آزمایش داخلی (CSV)</a> · <a href="/api/admin?action=export&scope=t&format=json">JSON</a></li>
 </ul>
+<h2>پاک کردن کد</h2>
+<form method="post" action="/api/admin" style="grid-template-columns:1fr">
+<input type="hidden" name="action" value="purge">
+<input class="n" name="codes" placeholder="کدها، جدا با فاصله یا ویرگول" aria-label="کدها" style="letter-spacing:1px">
+<button type="submit" style="background:#333;color:#fff">پاک کردن کد و داده‌اش</button>
+</form>
+<p><small>برای کدهای آزمایشی تیم؛ کد پاک‌شده دیگر باز نمی‌شود و از سهمیه بیرون می‌رود.</small></p>
 <h2>پیش‌نمایش</h2>
 <ul>
 <li>کاربر نمونه: <a href="/?persona=only">فقط میلی</a> · <a href="/?persona=multi">چند دارایی</a> · <a href="/?persona=new">تازه‌وارد</a></li>
+<li><a href="/api/login?logout=1">خروج از حساب تیم</a></li>
 <li>حالت آزمون داخلی (داده جدا در t/): <a href="/?test=TEAM01&g=m&set=A&persona=only">نمونه</a> — نشانی: <code>${esc(origin)}/?test=نام&amp;g=m&amp;set=A&amp;persona=only</code></li>
 </ul>`);
 }
@@ -118,6 +126,11 @@ export default {
         return csv(rows, `milli-invites-${g}-${Date.now()}.csv`);
       }
       if (f.get('action') === 'recount') await recountQuota();
+      if (f.get('action') === 'purge') {
+        const codes = String(f.get('codes') || '').toUpperCase().split(/[\s,]+/).filter((c) => CODE_RE.test(c));
+        for (const c of codes) await purgeCode(c);
+        return adminPage(await codeStatus(), url.origin, `${codes.length} کد پاک شد.`);
+      }
       return Response.redirect(new URL('/api/admin', request.url), 303);
     }
 
