@@ -7,7 +7,6 @@ import {
 import {
   useApp, NavBar, Diamond, AssetIcon, Toggle, Row, M, T, Alt, Change, SectionTitle, TxIcon, Keypad, Avatar, BigAmount, Logo, assetSub, ownAssets,
 } from './ui.jsx';
-import { MarketToday } from './simple.jsx';
 import { PRICE, PRICE_CHANGE, contacts, merchants, backingLabels } from './data.js';
 import { fa, money, milliIn } from './format.js';
 import { monthly, MONTHS } from './store.jsx';
@@ -324,7 +323,6 @@ export function BuyAsset({ p }) {
       <>
         <NavBar title="خرید دارایی" />
         <Sub>دارایی مورد نظرت را انتخاب کن. خرید از کیف پول ریالی انجام می‌شود.</Sub>
-        <MarketToday assets={state.assets} onPick={setSel} />
         <div className="card mt16" style={{ padding: '4px 18px' }}>
           <Row start={<AssetIcon color="#fbb918" />} title="میلی" sub="طلای ۱۸ عیار" chevron onClick={() => go('buy')} />
           {state.assets.map((x) => <Row key={x.id} start={<AssetIcon color={x.color} />} title={x.name} sub={<bdi>{assetSub(x)}</bdi>} chevron onClick={() => setSel(x.id)} />)}

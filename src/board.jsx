@@ -49,7 +49,7 @@ function Board() {
         <Phone tall tab="assets" st={ONLY_MILLI} label="دارایی‌ها · فقط میلی" note="حالت بیشتر کاربران: بدون نوار ترکیب، راهنما و فیلتر"><Assets /></Phone>
         <Phone tall tab="assets" label="دارایی‌ها · چند دارایی" note="تا سه دارایی: فهرست ساده و نوار دوتکه؛ کاربر نمونه با همین حالت شروع می‌کند"><Assets /></Phone>
         <Phone tall tab="assets" full label="دارایی‌ها · سبد پر" note="بیش از سه دارایی: نوار ترکیب و فیلتر گروه ظاهر می‌شود"><Assets /></Phone>
-        <Phone tall label="خرید دارایی" note="ردیف «بازار امروز» بالای فهرست؛ زیر هر دارایی مقدار کاربر یا قیمت هر واحد"><S.BuyAsset p={{}} /></Phone>
+        <Phone tall label="خرید دارایی" note="زیر هر دارایی مقدار کاربر یا قیمت هر واحد می‌آید"><S.BuyAsset p={{}} /></Phone>
       </section>
       <section>
         <Phone tall tab="card" label="کارت و اعتبار" note="کارت، اعتبار در دسترس به تومان، خرید قسطی، وام و قسط بعدی؛ بقیه در سه ردیف"><Card /></Phone>
