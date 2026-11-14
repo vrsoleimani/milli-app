@@ -6,7 +6,7 @@
 import { ADMIN, parseCookies, verify } from '../lib/auth.js';
 import { loginPage, page } from '../lib/page.js';
 import {
-  DEFAULT_PERSONA, GROUPS, PERSONAS, CODE_RE, addCodes, getCodes, listAll, purgeCode, quotas, readJSON, recountQuota,
+  DEFAULT_PERSONA, GROUPS, PERSONAS, CODE_RE, addCodes, getCodes, listAll, loadRecords, purgeCode, quotas, recountQuota,
 } from '../lib/store.js';
 
 const PERSONA_FA = { only: 'فقط میلی', multi: 'چند دارایی', new: 'تازه‌وارد با موجودی صفر' };
@@ -19,16 +19,6 @@ const cell = (v) => {
 const csv = (rows, name) => new Response(`﻿${rows.map((r) => r.map(cell).join(',')).join('\r\n')}\r\n`, {
   headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'no-store' },
 });
-
-async function loadRecords(scope) {
-  const blobs = await listAll(`${scope}/`);
-  const recs = [];
-  for (const b of blobs) {
-    const r = await readJSON(b.pathname);
-    if (r) recs.push(r.data);
-  }
-  return recs;
-}
 
 const BASE_COLS = ['sid', 'seq', 'ts', 't', 'type', 'mission', 'screen', 'target', 'x', 'y', 'dead', 'vw', 'vh'];
 
@@ -51,7 +41,7 @@ async function exportEvents(scope, format) {
 }
 
 async function codeStatus() {
-  const [codes, done, started] = await Promise.all([getCodes(true), listAll('done/'), listAll('p/')]);
+  const [codes, done, started] = await Promise.all([getCodes(true), listAll('done/'), listAll('s/')]);
   const doneSet = new Set(done.map((b) => b.pathname.split('/')[2]?.replace('.json', '')));
   const startedSet = new Set(started.map((b) => b.pathname.slice(2).replace('.json', '')));
   return { codes: codes.codes, doneSet, startedSet };

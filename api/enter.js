@@ -2,6 +2,7 @@
 // کد باید در codes.json باشد، قبلاً کامل نشده باشد و ظرفیت گروهش پر نباشد.
 import { PART, PART_TTL, cookie, sign, testUrl } from '../lib/auth.js';
 import { messagePage } from '../lib/page.js';
+import { put } from '@vercel/blob';
 import { CODE_RE, exists, getCodes, getQuota, quotas } from '../lib/store.js';
 
 const invalid = () => messagePage('لینک معتبر نیست', 'این لینک دعوت درست نیست یا کامل کپی نشده. لطفاً لینک را دوباره از پیام دعوت باز کن.', 404);
@@ -27,13 +28,19 @@ export default {
     }
 
     // سقف سهمیه: کسی که شروع کرده می‌تواند ادامه دهد؛ ورود تازه پس از پر شدن بسته است
-    const started = await exists(`p/${code}.json`);
+    const started = await exists(`s/${code}.json`);
     if (!started) {
       const cap = quotas()[info.g];
       const done = (await getQuota())[info.g] || 0;
       if (done >= cap) {
         return messagePage('ظرفیت تکمیل شد', 'ظرفیت این آزمون پر شده است. از وقتی که گذاشتی ممنونیم.', 403);
       }
+    }
+
+    if (!started) {
+      await put(`s/${code}.json`, JSON.stringify({ at: new Date().toISOString() }), {
+        access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true,
+      });
     }
 
     const p = { r: 'p', code, g: info.g, set: info.set, persona: info.persona };

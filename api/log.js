@@ -1,13 +1,16 @@
 // دریافت رویدادهای رفتار و نتیجه آزمون
-// POST {code, events:[{seq,...}], meta?, results?, complete?}
-// شرکت‌کننده (کوکی کد) در p/CODE.json؛ تیم (کوکی رمز) در t/CODE.json تا از داده اصلی جدا بماند.
-import { ADMIN, PART, parseCookies, verify } from '../lib/auth.js';
+// POST {code, sid, events:[{seq,...}], meta?, results?, complete?}
+// هر بسته یک فایل جدا و بی‌تداخل است: p/CODE/SID-FIRST-LAST.json (شرکت‌کننده) یا t/... (آزمایش داخلی تیم)
+// ارسال دوباره همان بسته همان فایل را بازنویسی می‌کند، پس تکراری ثبت نمی‌شود.
 import { put } from '@vercel/blob';
-import { getQuota, quotas, recountQuota, update } from '../lib/store.js';
+import { ADMIN, PART, parseCookies, verify } from '../lib/auth.js';
+import { getQuota, quotas, recountQuota } from '../lib/store.js';
 
 const MAX_BODY = 256 * 1024;
-const MAX_EVENTS = 30000;
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'cache-control': 'no-store' } });
+const save = (path, data) => put(path, JSON.stringify(data), {
+  access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true,
+});
 
 export default {
   async fetch(request) {
@@ -21,56 +24,38 @@ export default {
     const part = await verify(jar[PART], 'p');
     const code = String(body.code || '');
     let who;
-    if (part && part.code === code) who = { kind: 'p', ...part };
+    if (part && part.code === code) who = { kind: 'p', code, g: part.g, set: part.set, persona: part.persona };
     else if (/^[A-Za-z0-9_-]{1,24}$/.test(code) && (await verify(jar[ADMIN], 'admin'))) {
       who = { kind: 't', code, g: body.meta?.g || '-', set: body.meta?.set || '-', persona: body.meta?.persona || '-' };
     } else return json({ error: 'unauthorized' }, 401);
 
-    const path = `${who.kind}/${who.code}.json`;
-    const incoming = Array.isArray(body.events) ? body.events.filter((e) => e && Number.isFinite(e.seq)) : [];
-    const now = new Date().toISOString();
-    let completedNow = false;
-    let lastSeq = 0;
     const sid = /^[a-z0-9]{1,16}$/.test(body.sid || '') ? body.sid : 'x';
+    const events = (Array.isArray(body.events) ? body.events : []).filter((e) => e && Number.isFinite(e.seq)).sort((a, b) => a.seq - b.seq);
+    const now = new Date().toISOString();
+    const first = events.length ? events[0].seq : 0;
+    const last = events.length ? events[events.length - 1].seq : 0;
+    const name = events.length ? `${sid}-${first}-${last}` : `${sid}-r${Date.now()}`;
 
-    const saved = await update(path, (cur) => {
-      const rec = cur || {
-        code: who.code, g: who.g, set: who.set, persona: who.persona, internal: who.kind === 't',
-        firstSeen: now, done: false, seqBySid: {}, events: [], results: {},
-      };
-      rec.lastSeen = now;
-      if (body.meta && typeof body.meta === 'object') rec.meta = { ...rec.meta, ...body.meta };
-      // هر مرورگر یک sid دارد؛ شماره رویدادها برای هر sid جدا پیش می‌رود تا تکراری ثبت نشود
-      rec.seqBySid ||= {};
-      const last = rec.seqBySid[sid] || 0;
-      const fresh = incoming.filter((e) => e.seq > last).sort((a, b) => a.seq - b.seq).map((e) => ({ ...e, sid }));
-      if (fresh.length) {
-        rec.events = rec.events.concat(fresh).slice(-MAX_EVENTS);
-        rec.seqBySid[sid] = fresh[fresh.length - 1].seq;
-      }
-      lastSeq = rec.seqBySid[sid] || 0;
-      if (body.results && typeof body.results === 'object') rec.results = { ...rec.results, ...body.results };
-      completedNow = false;
-      if (body.complete && !rec.done) {
-        rec.done = true;
-        rec.completedAt = now;
-        completedNow = true;
-      }
-      return rec;
-    });
+    const chunk = {
+      code: who.code, g: who.g, set: who.set, persona: who.persona, internal: who.kind === 't', sid, at: now,
+      meta: body.meta && typeof body.meta === 'object' ? body.meta : undefined,
+      results: body.results && typeof body.results === 'object' ? body.results : undefined,
+      complete: !!body.complete,
+      events,
+    };
 
-    let overQuota = saved.overQuota || false;
-    if (completedNow && who.kind === 'p') {
+    let overQuota = false;
+    if (body.complete && who.kind === 'p') {
       // سهمیه: اگر پیش از این پایان، ظرفیت گروه پر بوده، پاسخ «بیش از سهمیه» علامت می‌خورد
       const before = (await getQuota())[who.g] || 0;
       overQuota = before >= quotas()[who.g];
-      await put(`done/${who.g}/${who.code}.json`, JSON.stringify({ at: now, overQuota }), {
-        access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true,
-      });
-      await recountQuota();
-      if (overQuota) await update(path, (cur) => ({ ...cur, overQuota: true }));
+      chunk.overQuota = overQuota;
     }
-
-    return json({ ok: true, lastSeq, done: saved.done, overQuota });
+    await save(`${who.kind}/${who.code}/${name}.json`, chunk);
+    if (body.complete && who.kind === 'p') {
+      await save(`done/${who.g}/${who.code}.json`, { at: now, overQuota });
+      await recountQuota();
+    }
+    return json({ ok: true, lastSeq: last, overQuota });
   },
 };
