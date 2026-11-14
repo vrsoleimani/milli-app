@@ -95,3 +95,14 @@ export const UNITS = {
   usdt: { qty: 126, u: 'USDT', dec: 2 },
   foolad: { qty: 20000, u: 'سهم', dec: 0 },
 };
+
+// کارمزد تبدیل (درصد). میلی: جدول کارمزد milli.gold (خرید و فروش ۰٫۵٪، حداقل ۱ میلی).
+// سایر دارایی‌ها عدد نمونه‌اند و منبع ندارند. تبدیل به میلی همیشه بدون کارمزد است.
+// هر تبدیل یک کارمزد دارد و از مبدا کم می‌شود.
+export const FEES = {
+  milli: 0.5, rial: 0,
+  silver: 0.5, coin: 0.5, copper: 0.5, foolad: 0.5,
+  goldfund: 0.3, income: 0.3,
+  btc: 0.4, eth: 0.4, usdt: 0.4,
+};
+export const MILLI_MIN_FEE = 1; // حداقل کارمزد میلی

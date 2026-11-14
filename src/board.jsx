@@ -88,7 +88,7 @@ function Board() {
       <h2>خرید، تبدیل و پس‌انداز</h2>
       <section>
         <Phone label="خرید میلی" note="از کیف پول ریالی، با گزینه خرید هفتگی"><Buy preset="600" /></Phone>
-        <Phone label="تبدیل" note="بین هر دو دارایی، فوری"><Convert /></Phone>
+        <Phone label="تبدیل" note="بین هر دو دارایی، فوری؛ کارمزد شفاف و تبدیل به میلی بدون کارمزد"><Convert /></Phone>
         <Phone label="قلک تازه" note="هدف به میلی، واریز خودکار"><NewJar /></Phone>
         <Phone label="قبض و شارژ" note="پرداخت همه با میلی"><Bills /></Phone>
         <Phone tall label="افزایش سقف اعتبار" note="پشتوانه: میلی، صندوق‌ها، نقره، تتر و ..."><CreditUp /></Phone>

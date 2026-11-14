@@ -298,3 +298,12 @@ form.ask-bar { padding: 0 4px 0 14px; position: sticky; bottom: 0; }
 .conv .keypad { margin-top: 6px; gap: 4px; }
 .conv .keypad button { height: 46px; font-size: 21px; }
 @media (max-height: 700px) { .conv .keypad button { height: 40px; } .conv .conv-side { padding: 10px 14px; } }
+.conv .conv-info { display: flex; flex-direction: column; gap: 7px; padding: 0 4px; }
+.conv .conv-fee { width: 100%; background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.conv .fee-free { background: rgba(43,211,107,.14); color: var(--green); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+.conv { position: relative; }
+.conv .conv-pop { position: absolute; inset: 0; z-index: 10; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; }
+.conv .conv-pop > .card { width: 100%; border: 1px solid #333; border-radius: 22px 22px 0 0; }
+.conv .conv-fee { font-size: 11px; line-height: 1.5; }
+.conv .fee-free { padding: 0 8px; font-size: 11px; line-height: 18px; }
+@media (max-height: 700px) { .conv .conv-info { gap: 4px; } .conv .keypad button { height: 38px; } }

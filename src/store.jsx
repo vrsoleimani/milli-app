@@ -102,18 +102,20 @@ function apply(s, kind, p) {
     case 'convert': {
       const name = (id) => srcName(s, id);
       const t = Math.round(p.toman), m = round(p.milli ?? t / PRICE);
+      const nt = Math.round(p.net ?? t), nm = round(nt / PRICE); // دریافتی بعد از کارمزد
       const d = debit(s, p.from, p.milli ?? t / PRICE);
       if (!d || !t) return NO;
       let n = d;
-      if (p.to === 'milli') n = { ...n, milli: round(n.milli + m) };
-      else if (p.to === 'rial') n = { ...n, rial: n.rial + t };
-      else n = { ...n, assets: n.assets.map((x) => (x.id === p.to ? { ...x, value: x.value + t } : x)) };
-      const sign = p.from === 'milli' ? -m : m;
+      if (p.to === 'milli') n = { ...n, milli: round(n.milli + nm) };
+      else if (p.to === 'rial') n = { ...n, rial: n.rial + nt };
+      else n = { ...n, assets: n.assets.map((x) => (x.id === p.to ? { ...x, value: x.value + nt } : x)) };
+      const sign = p.from === 'milli' ? -m : nm;
+      const feeTxt = p.fee ? ` · ${p.fee}` : '';
       return {
-        s: addTx(n, txOf(`تبدیل ${name(p.from)} به ${name(p.to)}`, 'تبدیل · الان', sign, p.from === 'milli' ? 'sell' : 'buy')),
+        s: addTx(n, txOf(`تبدیل ${name(p.from)} به ${name(p.to)}`, `تبدیل · الان${feeTxt}`, sign, p.from === 'milli' ? 'sell' : 'buy')),
         ok: p.to === 'milli'
-          ? { title: 'تبدیل انجام شد', amount: m, sub: `از ${name(p.from)}` }
-          : { title: 'تبدیل انجام شد', toman: t, qty: p.outText, qtyUnit: p.outUnit, sub: `از ${name(p.from)} · ≈ ${fa(t)} تومان` },
+          ? { title: 'تبدیل انجام شد', amount: nm, sub: `از ${name(p.from)}${feeTxt}` }
+          : { title: 'تبدیل انجام شد', toman: nt, qty: p.outText, qtyUnit: p.outUnit, sub: `از ${name(p.from)} · ≈ ${fa(nt)} تومان${feeTxt}` },
       };
     }
     case 'jar':

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
   Wallet, Check, QrCode, Image, Flashlight, Search, Share2, Zap, Flame, Droplet, Smartphone,
-  ArrowUpDown, Calendar, Repeat, X, Gift, ChevronLeft, ChevronDown, Store,
+  ArrowUpDown, Calendar, Repeat, X, Gift, ChevronLeft, ChevronDown, Store, Info,
 } from 'lucide-react';
 import { useApp, NavBar, Keypad, Avatar, Diamond, AssetIcon, Toggle, Row, Logo, M, Alt } from './ui.jsx';
-import { PRICE, contacts, bills, UNITS, initialState } from './data.js';
+import { PRICE, contacts, bills, UNITS, initialState, FEES, MILLI_MIN_FEE } from './data.js';
 import { fa } from './format.js';
 import { SourceRow, sourceBalance } from './extra.jsx';
 
@@ -363,17 +363,30 @@ function ConvSide({ label, id, other, onPick, value, unitLabel, sub, gold, red }
   );
 }
 
+// کارمزد یک تبدیل: یک کارمزد، از مبدا، به نرخ طرف غیرریالی؛ تبدیل به میلی صفر
+export function convFee(from, to, n) {
+  const pct = FEES[from === 'rial' ? to : from] ?? 0;
+  let q = (n * pct) / 100;
+  if (from === 'milli' && n) q = Math.min(n, Math.max(q, MILLI_MIN_FEE));
+  const free = to === 'milli';
+  return { pct, normal: q, qty: free ? 0 : q, free };
+}
+
 export function Convert({ from: fromInit, to: toInit }) {
-  const { state, act } = useApp();
+  const { state, act, hidden } = useApp();
   const f0 = fromInit || 'btc';
   const [from, setFrom] = useState(f0);
   const [to, setTo] = useState(toInit || (f0 === 'milli' ? 'silver' : 'milli'));
   const [raw, setRaw, onKey] = useAmount('');
   const [spin, setSpin] = useState(0);
+  const [feeInfo, setFeeInfo] = useState(false);
   const fu = unitOf(from), tu = unitOf(to);
   const n = Number(raw || 0);
   const toman = n * fu.price;
-  const out = toman / tu.price;
+  const fee = convFee(from, to, n);
+  const feeToman = fee.qty * fu.price;
+  const net = toman - feeToman;
+  const out = net / tu.price;
   const bal = sourceBalance(state, from);
   const short = toman > bal + 0.5;
   const names = Object.fromEntries(convOptions(state).map((o) => [o.id, o.name]));
@@ -395,6 +408,8 @@ export function Convert({ from: fromInit, to: toInit }) {
   const bigBase = big.u === 'تومان' ? 1e6 : 1;
   const rate = <bdi>{perBig(big)} ≈ {qtyText((bigBase * big.price) / small.price, small.dec)} {small.u}</bdi>;
   const outText = qtyText(out, tu.dec);
+  const pctText = `${fa(fee.pct, 1)}٪`;
+  const feeQtyText = (q) => (hidden ? '••••' : <bdi>{qtyText(q, fu.dec)} {fu.u}</bdi>);
   return (
     <div className="conv">
       <NavBar title="تبدیل" />
@@ -406,24 +421,51 @@ export function Convert({ from: fromInit, to: toInit }) {
           <ArrowUpDown size={18} />
         </button>
       </div>
-      <ConvSide label="به" id={to} other={from} onPick={setTo}
-        value={outText} unitLabel={tu.u} sub={eq(toman)} gold={to === 'milli'} />
+      <ConvSide label="به · دریافتی شما" id={to} other={from} onPick={setTo}
+        value={outText} unitLabel={tu.u} sub={eq(net)} gold={to === 'milli'} />
       <div className="row mt8" style={{ gap: 8 }}>
         {[['۲۵٪', 0.25], ['۵۰٪', 0.5], ['همه', 1]].map(([x, v]) => (
           <button key={x} className="pill sm grow" style={{ justifyContent: 'center' }} onClick={() => setPct(v)}>{x}</button>
         ))}
       </div>
-      <div className="between xs mt12" style={{ padding: '0 4px' }}>
-        <span className="muted">نرخ</span><span className="num">{rate}</span>
-      </div>
-      <div className="between xs mt8" style={{ padding: '0 4px' }}>
-        <span className="muted">زمان انجام</span><span>فوری</span>
+      <div className="conv-info mt8">
+        <div className="between xs"><span className="muted">نرخ</span><span className="num">{rate}</span></div>
+        <button className="between xs conv-fee" onClick={() => setFeeInfo(true)}>
+          <span className="muted row" style={{ gap: 4 }}>کارمزد<Info size={12} /></span>
+          {fee.free ? (
+            <span className="row num" style={{ gap: 6 }}>
+              {n > 0 && <s className="muted">{feeQtyText(fee.normal)}</s>}
+              <span className="fee-free">کارمزد صفر</span>
+            </span>
+          ) : (
+            <span className="num">{n > 0 ? <>{feeQtyText(fee.qty)}<span className="muted"> · {pctText}</span></> : pctText}</span>
+          )}
+        </button>
+        {fee.free
+          ? <div className="between xs"><span className="muted">زمان انجام</span><span>فوری</span></div>
+          : <div className="xs up" style={{ textAlign: 'right' }}>تبدیل به میلی همیشه بدون کارمزد است</div>}
       </div>
       <Keypad onKey={onKey} />
       <button className="btn primary mt8" disabled={!n || short}
-        onClick={() => act('convert', { from, to, toman: Math.round(toman), milli: from === 'milli' ? n : undefined, outText, outUnit: named(tu.u, to) })}>
+        onClick={() => act('convert', { from, to, toman: Math.round(toman), net: Math.round(net), milli: from === 'milli' ? n : undefined, outText, outUnit: named(tu.u, to),
+          fee: fee.free ? 'کارمزد صفر' : `کارمزد ${qtyText(fee.qty, fu.dec)} ${fu.u}` })}>
         {short ? 'موجودی کافی نیست' : n ? `تبدیل به ${outText} ${named(tu.u, to)}` : 'تبدیل'}
       </button>
+      {feeInfo && (
+        <div className="conv-pop" onClick={() => setFeeInfo(false)}>
+          <div className="card" onClick={(e) => e.stopPropagation()}>
+            <div className="between"><span className="h3">کارمزد تبدیل</span><button className="icon-btn" aria-label="بستن" onClick={() => setFeeInfo(false)}><X size={16} /></button></div>
+            <div className="between small mt12"><span className="muted">نرخ کارمزد</span><span className="num">{fee.free ? '۰٪' : pctText}</span></div>
+            <div className="between small mt8"><span className="muted">مبلغ کارمزد</span><span className="num">{fee.free ? '۰' : feeQtyText(fee.qty)}</span></div>
+            <div className="between small mt8"><span className="muted">معادل تومانی</span><span className="num">{hidden ? '••••' : `${fa(Math.round(feeToman))} تومان`}</span></div>
+            {fee.free && n > 0 && <div className="between small mt8"><span className="muted">صرفه‌جویی تو</span><span className="num up">{feeQtyText(fee.normal)}</span></div>}
+            <div className="card gold mt16 row" style={{ padding: 12, gap: 10 }}>
+              <Gift size={18} className="gold" />
+              <span className="xs grow">تبدیل هر دارایی به میلی همیشه بدون کارمزد است. بقیه تبدیل‌ها فقط یک کارمزد دارند که از مبدا کم می‌شود.</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
