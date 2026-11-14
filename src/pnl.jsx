@@ -28,7 +28,7 @@ const RET = {
   foolad: [null, -1.8, -2.3, -7.5, 8, -4, -5.1],
 };
 const INCOME_YIELD = [0.06, 0.4, 1.6, 4.9, 20, 31, 2.9]; // صندوق درآمد ثابت: همه بازده از نوع سود است
-const FEE = { btc: 0.0025, eth: 0.002, usdt: 0.001, foolad: 0.003, income: 0 }; // کارمزد ماهانه نسبت به ارزش
+const FEE = { millix: 0, btc: 0.0025, eth: 0.002, usdt: 0.001, foolad: 0.003, income: 0 }; // کارمزد ماهانه نسبت به ارزش
 const REALIZED = { btc: 0.3, foolad: 0.2, silver: 0.15 }; // سهم فروخته‌شده از سود قیمتی
 // اجزای باکس میلی به میلی: سود طلایی، پاداش کارت و خرده‌پول، کارمزد
 const MILLI_YIELD = [0.3, 2, 9, 27, 99, 126, 15];
@@ -38,7 +38,7 @@ const unitPrice = (id) => { const a = initialState.assets.find((x) => x.id === i
 const UNIT = {
   milli: ['هر میلی', PRICE], jars: ['هر میلی', PRICE], silver: ['هر گرم', unitPrice('silver')], coin: ['هر عدد', unitPrice('coin')],
   copper: ['هر کیلوگرم', unitPrice('copper')], goldfund: ['هر واحد', unitPrice('goldfund')], income: ['هر واحد', 10000], btc: ['هر بیت‌کوین', unitPrice('btc')],
-  eth: ['هر اتریوم', unitPrice('eth')], usdt: ['هر تتر', unitPrice('usdt')], foolad: ['هر سهم', unitPrice('foolad')],
+  eth: ['هر اتریوم', unitPrice('eth')], usdt: ['هر تتر', unitPrice('usdt')], millix: ['هر میلیکس', PRICE], foolad: ['هر سهم', unitPrice('foolad')],
 };
 const GROUP_OF = { فلزات: 'سکه و فلزات', صندوق: 'صندوق‌ها', رمزارز: 'رمزارز', سهام: 'سهام' };
 const GROUP_COLOR = { میلی: '#fbb918', 'قلک‌ها': '#e0a100', 'صندوق‌ها': '#2a49e8', رمزارز: '#f7931a', سهام: '#3b82f6', 'سکه و فلزات': '#c9ced6' };
@@ -55,7 +55,7 @@ export function computePnl(state, rid = 'm') {
     { id: 'jars', name: 'قلک‌ها', group: 'قلک‌ها', color: '#e0a100', V: jarsM * PRICE, rho: g, y: 0, rw: 0, fee: 0 },
     ...state.assets.map((a) => {
       const income = a.id === 'income';
-      const rho = income ? 0 : (i === 0 ? a.change : RET[a.id]?.[i] ?? r.g * 0.8) / 100;
+      const rho = income ? 0 : a.peg ? g : (i === 0 ? a.change : RET[a.id]?.[i] ?? r.g * 0.8) / 100; // میلیکس همراه طلا
       const y = income ? a.value * (INCOME_YIELD[i] / 100) / (1 + INCOME_YIELD[i] / 100) : (a.id === 'foolad' && i >= 4 && i <= 5 ? 620000 : 0);
       return { id: a.id, name: a.name, group: GROUP_OF[a.group] || a.group, color: a.color, V: a.value, rho, y, rw: 0, fee: -a.value * (FEE[a.id] ?? 0.0008) * r.k };
     }),
@@ -189,8 +189,8 @@ function Trend({ d }) {
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ direction: 'ltr', display: 'block' }}>
         <defs><linearGradient id="pnlg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fbb918" stopOpacity=".3" /><stop offset="1" stopColor="#fbb918" stopOpacity="0" /></linearGradient></defs>
         <path d={`${path(mine)} L${W},${z} L0,${z} Z`} fill="url(#pnlg)" />
-        <line x1="0" x2={W} y1={z} y2={z} stroke="#5c5c5c" strokeWidth="1" strokeDasharray="3 4" />
-        {ref && <path d={path(ref)} fill="none" stroke="#9a9a9a" strokeWidth="1.6" strokeDasharray="5 4" strokeLinecap="round" />}
+        <line x1="0" x2={W} y1={z} y2={z} style={{ stroke: 'var(--faint)' }} strokeWidth="1" strokeDasharray="3 4" />
+        {ref && <path d={path(ref)} fill="none" style={{ stroke: 'var(--muted)' }} strokeWidth="1.6" strokeDasharray="5 4" strokeLinecap="round" />}
         <path d={path(mine)} fill="none" stroke="#fbb918" strokeWidth="2.3" strokeLinejoin="round" strokeLinecap="round" />
         <circle cx={W} cy={Y(T)} r="4.5" fill="#fbb918" />
       </svg>

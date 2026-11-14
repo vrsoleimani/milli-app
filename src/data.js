@@ -24,6 +24,7 @@ export const initialState = {
     { id: 'copper', name: 'مس', sub: '۲٫۸ کیلوگرم', group: 'فلزات', value: 10166489, change: 0, color: '#c8743f' },
     { id: 'goldfund', name: 'صندوق طلای میلی', sub: '۴۸٬۰۰۰ واحد', group: 'صندوق', value: 106512000, change: 0, color: '#2a49e8' },
     { id: 'income', name: 'صندوق درآمد ثابت', sub: 'سود روزشمار ۲۰٪ سالانه', group: 'صندوق', value: 60000000, change: 0.1, color: '#5470ff' },
+    { id: 'millix', name: 'میلیکس', sub: '۲٬۰۰۰ MLX', group: 'رمزارز', value: 49796000, change: 0.3, color: '#ffd66b', peg: true }, // توکن میلی: هر MLX معادل یک میلی
     { id: 'btc', name: 'بیت‌کوین', sub: '۰٫۰۱۸ BTC', group: 'رمزارز', value: 328161551, change: -2.5, color: '#f7931a' },
     { id: 'eth', name: 'اتریوم', sub: '۰٫۳۵ ETH', group: 'رمزارز', value: 180736031, change: -1.7, color: '#8c8cf0' },
     { id: 'usdt', name: 'تتر', sub: '۱۲۶ USDT', group: 'رمزارز', value: 34220529, change: 0.3, color: '#26a17b' },
@@ -77,6 +78,7 @@ export const backingLabels = {
   usdt: { name: 'تتر', color: '#26a17b' },
   rial: { name: 'کیف پول ریالی', color: '#9ca3af' },
   btc: { name: 'بیت‌کوین', color: '#f7931a' },
+  millix: { name: 'میلیکس', color: '#ffd66b' },
   goldfund: { name: 'صندوق طلای میلی', color: '#2a49e8' },
   income: { name: 'صندوق درآمد ثابت', color: '#5470ff' },
   silver: { name: 'نقره', color: '#c9ced6' },
@@ -84,12 +86,14 @@ export const backingLabels = {
 
 // واحد هر دارایی (ارزش ÷ مقدار = قیمت روز هر واحد)
 // نقره ۴۵۶٬۹۸۰ ت/گرم · ربع‌سکه ۷۲٬۸۴۰٬۰۰۰ · مس ۳٬۶۳۰٬۸۸۹ ت/کیلو (۱۳٬۳۴۵ دلار در تن × دلار ۲۷۲٬۰۸۵)
+// میلیکس (MLX) توکن میلی است و قیمتش همان قیمت هر میلی است
 // صندوق طلا ۲٬۲۱۹ ت/واحد (جام طلا) · BTC ۱۸٬۲۳۱٬۱۹۷٬۳۰۳ · ETH ۵۱۶٬۳۸۸٬۶۵۹ · USDT ۲۷۱٬۵۹۲ · فولاد ۵۰۱ ت/سهم
 export const UNITS = {
   silver: { qty: 410, u: 'گرم', dec: 1 },
   coin: { qty: 1, u: 'ربع‌سکه', dec: 2 },
   copper: { qty: 2.8, u: 'کیلوگرم', dec: 2 },
   goldfund: { qty: 48000, u: 'واحد', dec: 0 },
+  millix: { qty: 2000, u: 'MLX', dec: 2 },
   btc: { qty: 0.018, u: 'BTC', dec: 8 },
   eth: { qty: 0.35, u: 'ETH', dec: 6 },
   usdt: { qty: 126, u: 'USDT', dec: 2 },
@@ -103,6 +107,6 @@ export const FEES = {
   milli: 0.5, rial: 0,
   silver: 0.5, coin: 0.5, copper: 0.5, foolad: 0.5,
   goldfund: 0.3, income: 0.3,
-  btc: 0.4, eth: 0.4, usdt: 0.4,
+  btc: 0.4, eth: 0.4, usdt: 0.4, millix: 0.4, // میلی به میلیکس و برعکس: بدون کارمزد (convFee)
 };
 export const MILLI_MIN_FEE = 1; // حداقل کارمزد میلی

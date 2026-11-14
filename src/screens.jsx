@@ -339,12 +339,12 @@ export function BuyAsset({ p }) {
 export function AssetPage({ p }) {
   const { state, go } = useApp();
   const a = state.assets.find((x) => x.id === p.id);
-  const seed = a.id.length * 7 + a.id.charCodeAt(0);
+  const seed = a.peg ? 11 : a.id.length * 7 + a.id.charCodeAt(0); // میلیکس همان نمودار قیمت میلی
   return (
     <>
       <NavBar title={a.name} />
       <div className="card">
-        <div className="row gap8"><Diamond color={a.color} size={11} /><span className="small muted">{a.sub}</span></div>
+        <div className="row gap8"><Diamond color={a.color} size={11} /><span className="small muted">{a.sub}</span>{a.peg && <span className="pill sm gold" style={{ marginInlineStart: 'auto' }}>هر MLX = ۱ میلی</span>}</div>
         <div className="big-num num mt8"><M t={a.value} /></div>
         <RangeChart base={a.value} seed={seed} color={a.color} />
       </div>
@@ -352,7 +352,7 @@ export function AssetPage({ p }) {
         <button className="btn primary" onClick={() => go('buyAsset', { id: a.id })}>خرید</button>
         <button className="btn ghost" onClick={() => go('buyAsset', { id: a.id, mode: 'sell' })}>فروش</button>
       </div>
-      <button className="btn ghost mt12" onClick={() => go('convert', { from: a.id, to: 'milli' })}>تبدیل به میلی</button>
+      <button className="btn ghost mt12" onClick={() => go('convert', { from: a.id, to: 'milli' })}>تبدیل به میلی{a.peg ? ' · یک‌به‌یک' : ''}</button>
     </>
   );
 }
@@ -482,7 +482,7 @@ export function Score() {
       <NavBar title="امتیاز اعتباری" />
       <div className="card" style={{ textAlign: 'center' }}>
         <svg viewBox="0 0 200 110" width="240" style={{ display: 'block', margin: '0 auto' }}>
-          <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#242424" strokeWidth="14" strokeLinecap="round" />
+          <path d="M20 100 A80 80 0 0 1 180 100" fill="none" style={{ stroke: 'var(--track)' }} strokeWidth="14" strokeLinecap="round" />
           <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#fbb918" strokeWidth="14" strokeLinecap="round" style={arc(0.84)} />
         </svg>
         <div className="big-num num" style={{ marginTop: -50 }}>۸۴۰</div>
@@ -673,7 +673,7 @@ export function GiftCard() {
         <div><div className="h2 num" style={{ color: '#fff' }}>{fa(amt)} میلی</div><div className="small" style={{ color: 'rgba(255,255,255,.85)' }}>هدیه برای {c.name}</div></div>
       </div>
       <div className="row mt12" style={{ justifyContent: 'center', gap: 10 }}>
-        {designs.map((g, i) => <button key={g} onClick={() => setD(i)} style={{ width: 34, height: 34, borderRadius: 11, background: g, outline: d === i ? '2px solid #fff' : 'none', outlineOffset: 2 }} aria-label="طرح" />)}
+        {designs.map((g, i) => <button key={g} onClick={() => setD(i)} style={{ width: 34, height: 34, borderRadius: 11, background: g, outline: d === i ? '2px solid var(--text)' : 'none', outlineOffset: 2 }} aria-label="طرح" />)}
       </div>
       <div className="h3 mt16">مبلغ</div>
       <div className="chips mt8">{[500, 1000, 5000, 10000].map((x) => <button key={x} className={`pill num ${amt === x ? 'active' : ''}`} onClick={() => setAmt(x)}>{fa(x)}</button>)}</div>
@@ -743,7 +743,7 @@ export function Business() {
         <div className="big-num num mt8"><M m={1440} /></div>
         <div className="small muted mt8">۳۲ پرداخت</div>
         <div className="row mt16" style={{ alignItems: 'flex-end', height: 70, gap: 6, direction: 'ltr' }}>
-          {hours.map((h, i) => <i key={i} style={{ flex: 1, height: `${(h / mx) * 100}%`, background: i === 6 ? 'var(--gold)' : '#2a2a2a', borderRadius: 6 }} />)}
+          {hours.map((h, i) => <i key={i} style={{ flex: 1, height: `${(h / mx) * 100}%`, background: i === 6 ? 'var(--gold)' : 'var(--track)', borderRadius: 6 }} />)}
         </div>
       </div>
       <div className="row mt16" style={{ gap: 10 }}>
@@ -776,7 +776,7 @@ export function CardAction({ p }) {
         <NavBar title="رمز دوم" />
         <Sub>رمز دوم پویا یا ثابت کارت را تعیین کن. ۴ رقم وارد کن.</Sub>
         <div className="row mt24" style={{ justifyContent: 'center', gap: 14 }}>
-          {[0, 1, 2, 3].map((i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 9, background: i < pin.length ? 'var(--gold)' : '#2a2a2a' }} />)}
+          {[0, 1, 2, 3].map((i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 9, background: i < pin.length ? 'var(--gold)' : 'var(--track)' }} />)}
         </div>
         <Keypad onKey={onKey} />
         <button className="btn primary mt12" disabled={pin.length < 4} onClick={() => act('cardPin')}>ثبت رمز</button>
@@ -826,7 +826,7 @@ export function CardAction({ p }) {
   );
 }
 
-const ALL_BACKING = ['milli', 'goldfund', 'income', 'silver', 'usdt', 'btc', 'eth', 'rial'];
+const ALL_BACKING = ['milli', 'millix', 'goldfund', 'income', 'silver', 'usdt', 'btc', 'eth', 'rial'];
 const LABELS = { ...backingLabels, eth: { name: 'اتریوم', color: '#8c8cf0' } };
 export function Backing() {
   const { state, patch } = useApp();
@@ -847,7 +847,7 @@ export function Backing() {
       <div className="card" style={{ padding: '4px 18px' }}>
         {on.map((id, i) => (
           <Row key={id}
-            start={<span className="badge-ic" style={{ width: 30, height: 30, borderRadius: 9, background: i === 0 ? 'var(--gold)' : '#2a2a2a', color: i === 0 ? '#000' : '#fff', fontWeight: 800, fontSize: 14 }}>{fa(i + 1)}</span>}
+            start={<span className="badge-ic" style={{ width: 30, height: 30, borderRadius: 9, background: i === 0 ? 'var(--gold)' : 'var(--track)', color: i === 0 ? '#000' : 'var(--text)', fontWeight: 800, fontSize: 14 }}>{fa(i + 1)}</span>}
             title={LABELS[id].name} sub={bal(id)}
             end={
               <span className="row" style={{ gap: 4 }}>
@@ -968,10 +968,10 @@ export function Merchants() {
   return (
     <>
       <NavBar title="پذیرنده‌ها" />
-      <div style={{ position: 'relative', height: 200, borderRadius: 22, overflow: 'hidden', background: '#101010', border: '1px solid #222' }}>
+      <div style={{ position: 'relative', height: 200, borderRadius: 22, overflow: 'hidden', background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
         <svg width="100%" height="100%" viewBox="0 0 350 200" style={{ position: 'absolute', inset: 0 }}>
-          {[40, 90, 140, 190].map((y) => <line key={y} x1="0" y1={y} x2="350" y2={y - 24} stroke="#1d1d1d" strokeWidth="10" />)}
-          {[60, 150, 240, 320].map((x) => <line key={x} x1={x} y1="0" x2={x + 30} y2="200" stroke="#1a1a1a" strokeWidth="8" />)}
+          {[40, 90, 140, 190].map((y) => <line key={y} x1="0" y1={y} x2="350" y2={y - 24} style={{ stroke: 'var(--line)' }} strokeWidth="10" />)}
+          {[60, 150, 240, 320].map((x) => <line key={x} x1={x} y1="0" x2={x + 30} y2="200" style={{ stroke: 'var(--line)' }} strokeWidth="8" />)}
         </svg>
         {pins.map(([x, y], i) => <span key={i} style={{ position: 'absolute', left: x, top: y, width: 26, height: 26, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', background: 'var(--gold)', display: 'grid', placeItems: 'center' }}><i style={{ width: 8, height: 8, borderRadius: 4, background: '#000' }} /></span>)}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Ctx } from './ui.jsx';
 import { initialState, PRICE } from './data.js';
 import { fa } from './format.js';
@@ -191,6 +191,14 @@ export function Provider({ children, Screens }) {
     try { return localStorage.getItem('milli-unit') === 'toman' ? 'toman' : 'milli'; } catch { return 'milli'; }
   });
   const [hidden, setHidden] = useState(false);
+  const [theme, setThemeRaw] = useState(() => {
+    try { return localStorage.getItem('milli-theme') === 'light' ? 'light' : 'dark'; } catch { return 'dark'; }
+  });
+  const setTheme = useCallback((t) => {
+    setThemeRaw(t);
+    try { localStorage.setItem('milli-theme', t); } catch { /* ignore */ }
+  }, []);
+  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   const [nav, setNav] = useState({ tab: 'home', stack: [] });
   const [toastMsg, setToastMsg] = useState(null);
   const timer = useRef();
@@ -225,13 +233,13 @@ export function Provider({ children, Screens }) {
   }, [toast]);
 
   const value = useMemo(() => ({
-    state, unit, hidden, tab: nav.tab, setUnit, toggleHidden, go, back, setTab, act, toast, patch,
-  }), [state, unit, hidden, nav.tab, setUnit, toggleHidden, go, back, setTab, act, toast, patch]);
+    state, unit, hidden, theme, setTheme, tab: nav.tab, setUnit, toggleHidden, go, back, setTab, act, toast, patch,
+  }), [state, unit, hidden, theme, setTheme, nav.tab, setUnit, toggleHidden, go, back, setTab, act, toast, patch]);
 
   const top = nav.stack[nav.stack.length - 1];
   return (
     <Ctx.Provider value={value}>
-      {children({ top, tab: nav.tab, toastMsg })}
+      {children({ top, tab: nav.tab, toastMsg, theme })}
     </Ctx.Provider>
   );
 }

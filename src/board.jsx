@@ -11,12 +11,12 @@ import {
   Buy, Send, Request, Pay, Success, Bills, Convert, NewJar, CreditUp, Welcome, OnbPhone, OnbGift,
 } from './flows.jsx';
 
-function Phone({ children, tall, tab, over, label, note, bare }) {
-  const ctx = staticCtx({ tab, ...over });
+function Phone({ children, tall, tab, over, label, note, bare, theme }) {
+  const ctx = staticCtx({ tab, theme: theme || 'dark', ...over });
   return (
     <figure className="frame">
       <Ctx.Provider value={ctx}>
-        <div className={`phone ${tall ? 'tall' : ''}`}>
+        <div className={`phone ${tall ? 'tall' : ''}`} data-theme={theme}>
           <StatusBar />
           {bare ? children : <div className="screen">{children}</div>}
           {tab && <TabBar />}
@@ -51,6 +51,16 @@ function Board() {
         <Phone tall over={{ unit: 'toman' }} label="آبشاری · بر اساس منبع · تومان" note="تغییر قیمت، سود طلایی و صندوق، پاداش و خرده‌پول، کارمزد"><Pnl p={{ by: 'source', range: 'q', help: true }} /></Phone>
         <Phone tall over={{ unit: 'toman' }} label="روند · تومان" note="سود و زیان تجمعی در برابر «اگر همه دارایی میلی بود»"><Pnl p={{ view: 'trend', range: 'y' }} /></Phone>
         <Phone tall label="روند · میلی" note="خط صفر یعنی نگه‌داشتن میلی"><Pnl p={{ view: 'trend', range: 'c' }} /></Phone>
+      </section>
+
+      <h2>ظاهر روشن، میلیکس و تراکنش‌های جمع‌شده (تازه)</h2>
+      <section>
+        <Phone tall tab="home" theme="light" label="خانه · روشن" note="تراکنش‌های اخیر یک باکس جمع‌شده است و با لمس باز می‌شود"><Home /></Phone>
+        <Phone tall tab="assets" theme="light" label="دارایی‌ها · روشن" note="میلیکس (MLX) اولین ردیف رمزارز"><Assets /></Phone>
+        <Phone tall tab="card" theme="light" label="کارت و اعتبار · روشن" note="کارت فیزیکی در هر دو ظاهر تیره می‌ماند"><Card /></Phone>
+        <Phone tall theme="light" label="پروفایل · روشن" note="ردیف «ظاهر»: تیره یا روشن؛ پیش‌فرض تیره"><Profile /></Phone>
+        <Phone tall label="میلیکس" note="توکن میلی: هر MLX معادل یک میلی، با همان نمودار قیمت"><S.AssetPage p={{ id: 'millix' }} /></Phone>
+        <Phone label="تبدیل میلیکس و میلی" note="یک‌به‌یک و بدون کارمزد در هر دو جهت"><Convert from="millix" to="milli" /></Phone>
       </section>
 
       <h2>پرداخت (تازه)</h2>

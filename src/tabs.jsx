@@ -3,7 +3,7 @@ import {
   Plus, Minus, Send, QrCode, Wallet, ChevronLeft, Sparkles, ArrowLeftRight, HandCoins,
   ShoppingBag, Landmark, CalendarClock, Gauge, Receipt, ShieldCheck, Building2, Truck, MapPin,
   Gift, Users, Star, KeyRound, PiggyBank, X, TrendingUp, Hash, Snowflake, Settings, GripVertical, Briefcase, Bell, Lock,
-  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards, LogOut,
+  HelpCircle, Info, UserPlus, Store, Coins, Smartphone, User, Gem, Hammer, WalletCards, LogOut, ChevronDown, Moon,
 } from 'lucide-react';
 import {
   useApp, TopBar, ViewToggles, BigAmount, M, Alt, Change, Diamond, AssetIcon, TxIcon, SectionTitle,
@@ -19,6 +19,7 @@ import { MONTHS } from './store.jsx';
 export function Home() {
   const { state, go } = useApp();
   const [tip, setTip] = useState(true);
+  const [txOpen, setTxOpen] = useState(false);
   const next = state.installments?.[0];
   return (
     <>
@@ -88,12 +89,20 @@ export function Home() {
         ))}
       </div>
 
-      <SectionTitle title="تراکنش‌های اخیر" link="همه" onLink={() => go('history')} />
-      <div>
-        {state.tx.slice(0, 5).map((t) => (
-          <Row key={t.id} start={<TxIcon kind={t.icon} />} title={t.title} sub={t.sub}
-            end={<span className={t.milli > 0 ? 'up' : ''}>{t.milli > 0 ? '+' : '−'}<M m={Math.abs(t.milli)} /></span>} />
-        ))}
+      <div className="card tx-box mt24">
+        <button className="between" style={{ width: '100%' }} onClick={() => setTxOpen(!txOpen)} aria-expanded={txOpen}>
+          <span className="row gap8"><span className="badge-ic sm"><Receipt size={17} /></span><span className="h3">تراکنش‌های اخیر</span></span>
+          <ChevronDown size={19} className="muted" style={{ transform: txOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+        </button>
+        {txOpen && (
+          <div className="tx-body">
+            {state.tx.slice(0, 5).map((t) => (
+              <Row key={t.id} start={<TxIcon kind={t.icon} />} title={t.title} sub={t.sub}
+                end={<span className={t.milli > 0 ? 'up' : ''}>{t.milli > 0 ? '+' : '−'}<M m={Math.abs(t.milli)} /></span>} />
+            ))}
+            <button className="link tx-all" onClick={() => go('history')}>همه تراکنش‌ها</button>
+          </div>
+        )}
       </div>
     </>
   );
@@ -152,7 +161,7 @@ export function Assets() {
 
       <SectionTitle title="میلی" />
       <button className="card soft row" style={{ width: '100%', textAlign: 'right' }} onClick={() => go('tab:home')}>
-        <span className="badge-ic" style={{ background: '#000' }}><Diamond /></span>
+        <span className="badge-ic" style={{ background: 'var(--bg)' }}><Diamond /></span>
         <span className="grow col gap4">
           <span className="h3">طلا</span>
           <span className="small muted num">{hidden ? '••••' : `${fa((state.milli + locked) / 1000, 2)} گرم`}</span>
@@ -303,7 +312,7 @@ export function Card() {
 
       {next ? (
         <div className="card soft mt12 row">
-          <span className="badge-ic" style={{ background: '#000' }}><CalendarClock size={20} /></span>
+          <span className="badge-ic" style={{ background: 'var(--bg)' }}><CalendarClock size={20} /></span>
           <span className="grow col gap4">
             <span className="h3">قسط بعدی · ۲۵ {MONTHS[next.k % 12]}</span>
             <span className="small muted"><M t={next.monthly} /></span>
@@ -336,7 +345,7 @@ export function Card() {
 
 /* ───────────── تب پروفایل ───────────── */
 export function Profile() {
-  const { go, unit, setUnit, state } = useApp();
+  const { go, unit, setUnit, state, theme, setTheme } = useApp();
   return (
     <>
       <NavBar title="پروفایل" />
@@ -375,6 +384,14 @@ export function Profile() {
           <div className="unit-switch">
             <button className={unit === 'milli' ? 'on' : ''} onClick={() => setUnit('milli')}>میلی</button>
             <button className={unit === 'toman' ? 'on' : ''} onClick={() => setUnit('toman')}>تومان</button>
+          </div>
+        </div>
+        <div className="list-row">
+          <span className="badge-ic"><Moon size={19} /></span>
+          <span className="grow h3">ظاهر</span>
+          <div className="unit-switch">
+            <button className={theme === 'dark' ? 'on' : ''} onClick={() => setTheme('dark')}>تیره</button>
+            <button className={theme === 'light' ? 'on' : ''} onClick={() => setTheme('light')}>روشن</button>
           </div>
         </div>
         <Row start={<span className="badge-ic"><Lock size={19} /></span>} title="امنیت و ورود" chevron onClick={() => go('settings', { kind: 'security' })} />

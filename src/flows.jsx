@@ -89,12 +89,12 @@ export function Send({ to = 'sara', preset = '', gift: giftInit = false }) {
       <NavBar title={gift ? 'هدیه میلی' : 'ارسال میلی'} end={<UnitFlip />} />
       <div className="hscroll" style={{ gap: 14 }}>
         <button className="col gap8" style={{ alignItems: 'center', minWidth: 56 }}>
-          <span className="avatar" style={{ background: 'var(--surface)', color: '#fff', width: 48, height: 48 }}><Search size={20} /></span>
+          <span className="avatar" style={{ background: 'var(--surface)', color: 'var(--text)', width: 48, height: 48 }}><Search size={20} /></span>
           <span className="xs">جستجو</span>
         </button>
         {contacts.map((x) => (
           <button key={x.id} className="col gap8" style={{ alignItems: 'center', minWidth: 56, opacity: x.id === sel ? 1 : 0.45 }} onClick={() => setSel(x.id)}>
-            <span style={{ borderRadius: '50%', boxShadow: x.id === sel ? '0 0 0 2px #000, 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
+            <span style={{ borderRadius: '50%', boxShadow: x.id === sel ? '0 0 0 2px var(--bg), 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
             <span className="xs">{x.name.split(' ')[0]}</span>
           </button>
         ))}
@@ -129,7 +129,7 @@ export function Request({ preset = '' }) {
       <div className="hscroll" style={{ gap: 14 }}>
         {contacts.map((x) => (
           <button key={x.id} className="col gap8" style={{ alignItems: 'center', minWidth: 56, opacity: x.id === sel ? 1 : 0.45 }} onClick={() => setSel(x.id)}>
-            <span style={{ borderRadius: '50%', boxShadow: x.id === sel ? '0 0 0 2px #000, 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
+            <span style={{ borderRadius: '50%', boxShadow: x.id === sel ? '0 0 0 2px var(--bg), 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
             <span className="xs">{x.name.split(' ')[0]}</span>
           </button>
         ))}
@@ -341,7 +341,7 @@ export function convFee(from, to, n) {
   const pct = FEES[from === 'rial' ? to : from] ?? 0;
   let q = (n * pct) / 100;
   if (from === 'milli' && n) q = Math.min(n, Math.max(q, MILLI_MIN_FEE));
-  const free = to === 'milli';
+  const free = to === 'milli' || (from === 'milli' && to === 'millix'); // میلی و میلیکس یک دارایی‌اند
   return { pct, normal: q, qty: free ? 0 : q, free };
 }
 
@@ -390,7 +390,7 @@ export function Convert({ from: fromInit, to: toInit }) {
         value={fmtRaw(raw)} unitLabel={fu.u} sub={eq(toman)} red={short} />
       <div style={{ display: 'grid', placeItems: 'center', margin: '-12px 0', position: 'relative', zIndex: 2 }}>
         <button className="icon-btn" aria-label="جابه‌جایی مبدا و مقصد" onClick={swap}
-          style={{ background: 'var(--gold)', color: '#000', border: '4px solid #000', width: 42, height: 42, transform: `rotate(${spin}deg)`, transition: 'transform .3s' }}>
+          style={{ background: 'var(--gold)', color: '#000', border: '4px solid var(--bg)', width: 42, height: 42, transform: `rotate(${spin}deg)`, transition: 'transform .3s' }}>
           <ArrowUpDown size={18} />
         </button>
       </div>
@@ -469,7 +469,7 @@ export function NewJar() {
             const on = members.includes(x.id);
             return (
               <button key={x.id} className="col gap8" style={{ alignItems: 'center', minWidth: 52, opacity: on ? 1 : 0.4 }} onClick={() => setMembers((s) => (on ? s.filter((y) => y !== x.id) : [...s, x.id]))}>
-                <span style={{ borderRadius: '50%', boxShadow: on ? '0 0 0 2px #000, 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={44} /></span>
+                <span style={{ borderRadius: '50%', boxShadow: on ? '0 0 0 2px var(--bg), 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={44} /></span>
                 <span className="xs">{x.name.split(' ')[0]}</span>
               </button>
             );
@@ -531,8 +531,8 @@ export function Welcome() {
     <div className="col" style={{ minHeight: '100%', paddingTop: 40 }}>
       <div style={{ position: 'relative', height: 330, display: 'grid', placeItems: 'center' }}>
         <span style={{ position: 'absolute', width: 210, height: 210, transform: 'rotate(45deg)', borderRadius: 36, background: 'var(--gold)', boxShadow: '0 0 120px rgba(251,185,24,.35)' }} />
-        <span style={{ position: 'absolute', width: 84, height: 84, transform: 'translate(-104px,-104px) rotate(45deg)', borderRadius: 18, border: '2px solid #333' }} />
-        <span style={{ position: 'absolute', width: 56, height: 56, transform: 'translate(108px,104px) rotate(45deg)', borderRadius: 12, background: '#1f1f1f' }} />
+        <span style={{ position: 'absolute', width: 84, height: 84, transform: 'translate(-104px,-104px) rotate(45deg)', borderRadius: 18, border: '2px solid var(--border)' }} />
+        <span style={{ position: 'absolute', width: 56, height: 56, transform: 'translate(108px,104px) rotate(45deg)', borderRadius: 12, background: 'var(--surface-2)' }} />
         <span style={{ position: 'relative', fontWeight: 900, fontSize: 44, color: '#000' }}>میلی</span>
       </div>
       <span className="h1 mt24" style={{ fontSize: 32, lineHeight: 1.4 }}>پول تو، به طلا</span>

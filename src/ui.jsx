@@ -22,8 +22,8 @@ export function staticCtx(over = {}) {
       ],
       installments: [{ id: 'i1', title: 'خرید اعتباری', monthly: 4200000, left: 7, k: 0, total: 12 }],
     },
-    unit: 'milli', hidden: false, tab: 'home',
-    setUnit() {}, toggleHidden() {}, go() {}, back() {}, setTab() {}, act() {}, toast() {}, patch() {},
+    unit: 'milli', hidden: false, tab: 'home', theme: 'dark',
+    setUnit() {}, setTheme() {}, toggleHidden() {}, go() {}, back() {}, setTab() {}, act() {}, toast() {}, patch() {},
     ...over,
   };
 }
@@ -31,8 +31,8 @@ export function staticCtx(over = {}) {
 export function Logo({ size = 42 }) {
   return (
     <svg className="logo" width={size} height={size} viewBox="0 0 42 42" aria-label="میلی">
-      <rect width="42" height="42" rx="13" fill="#fff" />
-      <rect x="13" y="13" width="16" height="16" rx="3" fill="#000" transform="rotate(45 21 21)" />
+      <rect className="lg-bg" width="42" height="42" rx="13" />
+      <rect className="lg-fg" x="13" y="13" width="16" height="16" rx="3" transform="rotate(45 21 21)" />
       <circle cx="31.5" cy="9.5" r="4.5" fill="#fbb918" />
     </svg>
   );
@@ -43,7 +43,7 @@ export function StatusBar() {
     <div className="statusbar">
       <span>9:41</span>
       <span className="dots">
-        <svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="5" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2.5" width="3" height="8.5" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="11" rx="1" fill="#fff"/></svg>
+        <svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="6" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="8.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg>
         <span className="bat"><i /></span>
       </span>
     </div>

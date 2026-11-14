@@ -84,7 +84,7 @@ export function Split({ title: title0, total: total0 }) {
           const on = sel.includes(x.id);
           return (
             <button key={x.id} className="col gap8" style={{ alignItems: 'center', minWidth: 56, opacity: on ? 1 : 0.4 }} onClick={() => tg(x.id)}>
-              <span style={{ borderRadius: '50%', boxShadow: on ? '0 0 0 2px #000, 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
+              <span style={{ borderRadius: '50%', boxShadow: on ? '0 0 0 2px var(--bg), 0 0 0 4px var(--gold)' : 'none' }}><Avatar c={x} size={48} /></span>
               <span className="xs">{x.name.split(' ')[0]}</span>
             </button>
           );
@@ -185,7 +185,7 @@ export function SalarySplit() {
         <div className="between"><span className="small muted">حقوق ماهانه</span><span className="h3 num">{fa(SALARY)} تومان</span></div>
         <div className="stack-bar mt16">
           {rows.map(([k, , , c]) => <i key={k} style={{ flex: v[k], background: c }} />)}
-          <i style={{ flex: rest, background: '#555' }} />
+          <i style={{ flex: rest, background: 'var(--faint)' }} />
         </div>
         <div className="xs muted mt12">هر ماه، همان لحظه که حقوق می‌رسد، خودکار تقسیم می‌شود.</div>
       </div>
@@ -281,7 +281,7 @@ export function SpendCard() {
       <div className="row mt16" style={{ alignItems: 'flex-end', gap: 10, height: 70 }}>
         {MONTHLY.map(([m, v], i) => (
           <span key={m} className="col grow" style={{ alignItems: 'center', gap: 6 }}>
-            <i style={{ width: '100%', height: Math.round((v / max) * 48), borderRadius: 8, background: i === MONTHLY.length - 1 ? 'var(--gold)' : '#2e2e2e', display: 'block' }} />
+            <i style={{ width: '100%', height: Math.round((v / max) * 48), borderRadius: 8, background: i === MONTHLY.length - 1 ? 'var(--gold)' : 'var(--track)', display: 'block' }} />
             <span className="xs muted">{m}</span>
           </span>
         ))}

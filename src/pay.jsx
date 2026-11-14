@@ -63,7 +63,7 @@ export function PayHub({ mode: init = 'scan' }) {
         <span className="ph-grab" />
         <div className="ph-people">
           <button className="col gap8" onClick={() => go('send')}>
-            <span className="avatar" style={{ background: 'var(--surface-3)', color: '#fff' }}><Search size={20} /></span>
+            <span className="avatar" style={{ background: 'var(--surface-3)', color: 'var(--text)' }}><Search size={20} /></span>
             <span className="xs muted">جستجو</span>
           </button>
           {contacts.map((c) => (

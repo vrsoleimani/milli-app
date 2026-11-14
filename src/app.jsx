@@ -71,11 +71,11 @@ const BARE = new Set(['scan', 'payhub']);
 function App() {
   return (
     <Provider>
-      {({ top, tab, toastMsg }) => {
+      {({ top, tab, toastMsg, theme }) => {
         const Tab = TABS[tab];
         return (
           <div className="app-root">
-            <div className="phone app">
+            <div className="phone app" data-theme={theme}>
               <StatusBar />
               {top && BARE.has(top.id) ? (
                 <div key={top.key} className="screen-in" style={{ display: 'contents' }}>{SCREENS[top.id](top.params)}</div>
