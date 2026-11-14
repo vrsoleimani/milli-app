@@ -115,3 +115,19 @@ export const FEES = {
   btc: 0.4, eth: 0.4, usdt: 0.4, millix: 0.4, // میلی به میلیکس و برعکس: بدون کارمزد (convFee)
 };
 export const MILLI_MIN_FEE = 1; // حداقل کارمزد میلی
+
+// ─── کاربر نمونه قابل انتخاب (آزمون کاربر، پارامتر persona) ───
+// only: فقط میلی (حالت بیشتر کاربران) · multi: چند دارایی (حالت پیش‌فرض موکاپ) · new: تازه‌وارد با موجودی صفر
+export function personaState(base, persona) {
+  const noAssets = base.assets.map((a) => ({ ...a, value: 0 }));
+  if (persona === 'only') return { ...base, assets: noAssets, backing: ['milli', 'rial'] };
+  if (persona === 'new') {
+    return {
+      ...base,
+      milli: 0, rial: 0, rewardsMonth: 0, assets: noAssets, jars: [], tx: [], locks: [], splits: [], installments: [],
+      credit: { ...base.credit, limit: 0, used: 0 }, backing: ['milli', 'rial'],
+      roundup: { ...base.roundup, saved: 0 },
+    };
+  }
+  return base;
+}

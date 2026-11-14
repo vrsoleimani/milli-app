@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Ctx } from './ui.jsx';
-import { initialState, PRICE } from './data.js';
+import { initialState, PRICE, personaState } from './data.js';
+import { PERSONA, TEST, loadSaved, saveState, startLogging, bindStore, setScreen, track, slim } from './testkit.js';
 import { fa } from './format.js';
 
 export const MONTHS = ['آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان'];
@@ -11,7 +12,7 @@ export function monthly(principal, months, rate = 0.23) {
   return Math.round((principal * r) / (1 - Math.pow(1 + r, -months)));
 }
 
-const start = {
+const base = {
   ...initialState,
   account: 'personal',
   accounts: [
@@ -24,6 +25,9 @@ const start = {
   settled: false,
   autoRial: true,
 };
+// حالت اول کاربر نمونه (پارامتر persona)؛ در حالت آزمون، شروع هر مأموریت به همین برمی‌گردد
+const start = personaState(base, PERSONA);
+const saved = loadSaved();
 
 const round = (n, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
 const txOf = (title, sub, milli, icon) => ({ id: Math.random(), title, sub, milli, icon });
@@ -186,8 +190,9 @@ function apply(s, kind, p) {
 }
 
 export function Provider({ children, Screens }) {
-  const [state, setState] = useState(start);
+  const [state, setState] = useState(() => saved?.state || start);
   const [unit, setUnitRaw] = useState(() => {
+    if (TEST.active) return saved?.unit || 'milli'; // آزمون همیشه با واحد پیش‌فرض شروع می‌شود
     try { return localStorage.getItem('milli-unit') === 'toman' ? 'toman' : 'milli'; } catch { return 'milli'; }
   });
   const [hidden, setHidden] = useState(false);
@@ -199,7 +204,7 @@ export function Provider({ children, Screens }) {
     try { localStorage.setItem('milli-theme', t); } catch { /* ignore */ }
   }, []);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
-  const [nav, setNav] = useState({ tab: 'home', stack: [] });
+  const [nav, setNav] = useState({ tab: saved?.tab || 'home', stack: [] });
   const [toastMsg, setToastMsg] = useState(null);
   const timer = useRef();
   const stateRef = useRef(state);
@@ -207,11 +212,13 @@ export function Provider({ children, Screens }) {
 
   const setUnit = useCallback((u) => {
     setUnitRaw(u);
+    if (TEST.active) return;
     try { localStorage.setItem('milli-unit', u); } catch { /* ignore */ }
   }, []);
   const toggleHidden = useCallback(() => setHidden((h) => !h), []);
   const toast = useCallback((msg) => {
     setToastMsg(msg);
+    track('toast', { msg: String(msg).slice(0, 80) });
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setToastMsg(null), 2200);
   }, []);
@@ -222,15 +229,30 @@ export function Provider({ children, Screens }) {
     if (id === 'welcome') return setNav((n) => ({ ...n, stack: [{ id, params, key: Math.random() }] }));
     setNav((n) => ({ ...n, stack: [...n.stack, { id, params, key: Math.random() }] }));
   }, []);
-  const back = useCallback(() => setNav((n) => ({ ...n, stack: n.stack.slice(0, -1) })), []);
+  const back = useCallback(() => {
+    track('back');
+    setNav((n) => ({ ...n, stack: n.stack.slice(0, -1) }));
+  }, []);
   const setTab = useCallback((t) => setNav({ tab: t, stack: [] }), []);
 
   const act = useCallback((kind, p = {}) => {
     const r = apply(stateRef.current, kind, p);
+    track('act', { kind, ok: !r.error, error: r.error, params: slim(p), result: r.ok ? slim(r.ok) : undefined });
     if (r.error) return toast(r.error);
     setState(r.s);
     setNav((n) => ({ ...n, stack: [...n.stack.slice(0, -1), { id: 'success', params: r.ok, key: Math.random() }] }));
   }, [toast]);
+
+  // لایه آزمون: ثبت صفحه، ذخیره وضعیت و بازنشانی در شروع مأموریت
+  const topId = nav.stack.length ? nav.stack[nav.stack.length - 1].id : `tab:${nav.tab}`;
+  useEffect(() => { setScreen(topId); }, [topId]);
+  useEffect(() => { saveState(state, nav.tab, unit); }, [state, nav.tab, unit]);
+  useEffect(() => {
+    if (!TEST.active) return;
+    bindStore({ reset: () => { setState(start); setNav({ tab: 'home', stack: [] }); setUnitRaw('milli'); setHidden(false); }, getState: () => stateRef.current });
+    startLogging();
+  }, []);
+  useEffect(() => { track('unit', { unit }); }, [unit]);
 
   const value = useMemo(() => ({
     state, unit, hidden, theme, setTheme, tab: nav.tab, setUnit, toggleHidden, go, back, setTab, act, toast, patch,
