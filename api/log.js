@@ -3,7 +3,7 @@
 // هر بسته یک فایل جدا و بی‌تداخل است: p/CODE/SID-FIRST-LAST.json (شرکت‌کننده) یا t/... (آزمایش داخلی تیم)
 // ارسال دوباره همان بسته همان فایل را بازنویسی می‌کند، پس تکراری ثبت نمی‌شود.
 import { put } from '@vercel/blob';
-import { ADMIN, PART, parseCookies, verify } from '../lib/auth.js';
+import { ADMIN, PART, cookie, parseCookies, verify } from '../lib/auth.js';
 import { getQuota, quotas, recountQuota } from '../lib/store.js';
 
 const MAX_BODY = 256 * 1024;
@@ -56,6 +56,9 @@ export default {
       await save(`done/${who.g}/${who.code}.json`, { at: now, overQuota });
       await recountQuota();
     }
-    return json({ ok: true, lastSeq: last, overQuota });
+    const res = json({ ok: true, lastSeq: last, overQuota });
+    // پس از پایان کامل، کوکی شرکت‌کننده پاک می‌شود تا کد دوباره باز نشود
+    if (body.complete && who.kind === 'p') res.headers.append('set-cookie', cookie(PART, '', 0));
+    return res;
   },
 };

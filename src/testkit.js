@@ -42,8 +42,8 @@ let lastSize = '';
 export function track(type, data = {}) {
   if (!TEST.active) return;
   const e = {
-    seq: ++log.seq, ts: Date.now(), t: Date.now() - log.started, type,
     mission: log.mission, screen: curScreen, vw: innerWidth, vh: innerHeight, ...data,
+    seq: ++log.seq, ts: Date.now(), t: Date.now() - log.started, type, // این چهار فیلد بازنویسی نمی‌شوند
   };
   log.queue.push(e);
   if (log.queue.length > 5000) log.queue = log.queue.slice(-5000);
